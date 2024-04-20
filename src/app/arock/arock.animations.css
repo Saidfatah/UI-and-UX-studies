@@ -1,0 +1,176 @@
+
+:root {
+    /* Define a CSS custom property to hold the font family */
+    --font-HelveticaNeueBold: 'Helvetica Neue Bold', sans-serif;
+    --font-HelveticaNeueMedium: 'Helvetica Neue Medium', sans-serif;
+    --font-HelveticaNeueLight: 'Helvetica Neue Light', sans-serif;
+  }
+
+header{
+    width: 100%;
+    height: 100%;
+}
+
+
+
+.flexCenter{    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.lettersContainer{
+    perspective: 12.5vw;
+    overflow: hidden;
+    padding: 0px;
+    padding-right: 4px;
+    letter-spacing: -0.05em;
+    line-height: 72px;
+}
+
+
+span{
+     display: inline-block;
+     will-change: transform;
+     color: white;
+}
+ 
+
+.description{
+    font-size: .625vw;
+    line-height: .8333vw;
+    font-family: var(--font-HelveticaNeueBold);
+}
+
+.title{
+    font-family: var(--font-HelveticaNeueBold);
+     font-size: 90px;
+     font-weight: bold;
+}
+ 
+.letterHidden{
+    transform: translate3d(0%, 100%, 10px) rotateX(50deg);
+}
+
+.letterSlide{
+    animation: letterSlideRotateIn 0.5s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+}
+
+@keyframes letterSlideRotateIn {
+    from{
+        opacity: 0;
+         /* filter: blur(10px); */
+        transform: translate3d(0%, 100%, 0px) rotateX(50deg);
+    }
+    to{
+        transform: translate3d(0%, 0%, 0px) rotateX(0deg);
+        /* filter: blur(0px); */
+        opacity: 1;
+    }
+}
+
+
+.wordHidden{
+    transform: translate3d(0%, 130%, 0px) rotateX(60deg) rotateY(20deg);
+}
+.wordSlide{
+    animation: wordSlideRotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wordSlideRotateIn {
+    from{
+        opacity: 0;
+        transform: translate3d(0%, 130%, 0px) rotateX(60deg) rotateY(20deg);
+    }
+    to{
+        transform: translate3d(0%, 0%, 0px) rotateX(0deg) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+
+
+
+/* the hero image  */
+
+
+.heroImageBgHidden{
+    height: 0%;
+    
+}
+
+.heroImageBgFullExpanded{
+    animation: expandHeroBg 1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    will-change: height;
+}
+
+
+.heroImageBgScaleIn{
+    transform: scale(1.1);
+}
+.heroImageBgScaleOutImg{
+    animation: scaleOutImg 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    will-change: transform;
+}
+
+@keyframes scaleOutImg {
+    from{
+        transform: scale(1.1) ;
+    }
+    to{
+        transform: scale(1);
+    }
+}
+
+@keyframes expandHeroBg {
+    from{
+        height: 0%;
+    }
+    to{
+        height: 100%;
+    }
+}
+
+
+.loadingBarProgressZero{
+    width: 0%;
+}
+
+.loadingBarProgress100{
+    animation: barProgressTo100 0.5s cubic-bezier(0.65, 0, 0.35, 1)forwards;
+    will-change: width;
+}
+
+@keyframes barProgressTo100 {
+    from{
+        width: 0%;
+        opacity: 1;
+    }
+    to{
+        width: 100%;
+        opacity: 0;
+    }
+}
+
+
+
+
+
+/*  
+.letterHidden{
+    transform: translate3d(0%, 110%, -56px) rotateX(-30deg);
+}
+
+.letterSlide{
+    animation: letterSlideRotateIn 1s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+}
+
+@keyframes letterSlideRotateIn {
+    from{
+        transform: translate3d(0%, 110%, -56px) rotateX(-30deg);
+    }
+    to{
+        transform: translate3d(0%, 0%, 0px) rotateX(0deg);
+    }
+} */
