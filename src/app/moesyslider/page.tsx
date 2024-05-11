@@ -104,7 +104,7 @@ function MoesySlider() {
                     }
                     if (wasInSecondThird) animateThirdMark(secondThirdRef.current!);
 
-                    animatePopup(imageRef.current!, "subtlePopup",1000)
+                    animatePopup(imageRef.current!, "subtlePopup")
 
                     animateStepLabel()
 
