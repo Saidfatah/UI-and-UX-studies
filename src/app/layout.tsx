@@ -22,6 +22,18 @@ const helviticaNue = localFont({
       variable: '--font-HelveticaNeueLight',
       style: 'normal',
     },
+    {
+      path: '../../public/fonts/ITCAvantGardeStd-Bold.ttf',
+      weight: '600',
+      variable: '--font-ITCAvantGardeStdBold',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/ITCAvantGardeStd-Demi.ttf',
+      weight: '600',
+      variable: '--font-ITCAvantGardeStdDemi',
+      style: 'normal',
+    },
   ],
   display: 'swap',
 })
