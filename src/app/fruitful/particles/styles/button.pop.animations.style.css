@@ -1,0 +1,109 @@
+.center_wrapper{
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button_with_fill{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5rem;
+    position: relative;
+    overflow: hidden;
+    width: 11.5rem;
+    height: 3rem;
+    transform: scale(1);
+    
+    
+}
+.button_with_fill_green{
+    background-color:#054f31;
+}
+
+@keyframes scale-animation {
+    0% {
+        transform: scale(1);
+    }
+    20% {
+        transform: scale(0.9);
+    }
+    60% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.button_wrapper_Scale_animation{
+    animation: scale-animation 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
+.button_bg_fill {
+    z-index: -1;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform-origin: bottom center;
+    height: 100%;
+    width: 100%;
+    transform: scale(1, 0);
+    transition: all 0.5s  cubic-bezier(0.87, 0, 0.13, 1);
+    border-top-left-radius: 5rem;
+    border-top-right-radius: 5rem;
+}
+
+
+
+.button_with_fill:hover .button_bg_fill{
+    transform: scale(1.5, 2) ;
+}
+
+
+
+
+@keyframes letter_spacing_animation {
+    0% {
+        letter-spacing: 0.3em;
+    }
+
+    50% {
+        letter-spacing: 0.2em;
+    }
+    100% {
+        letter-spacing: 0.3em;
+    }
+}
+
+
+.button_text {
+    letter-spacing: 0.3em;
+    text-align: center;
+    font-size: 1rem;
+    transition: all 0.5s  cubic-bezier(0.87, 0, 0.13, 1);
+    transform: scale(1, 1);
+    font-weight: 300;
+}
+.letter_spacing_animation_class{
+    animation: letter_spacing_animation 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.button_with_fill .is_green  {
+    color: #d9ffe0;
+}
+
+
+.is_green .button_bg_fill {
+    background-color:#d9ffe0;
+}
+
+
+.button_with_fill_green:hover {
+    color: #054f31;
+}
+
+

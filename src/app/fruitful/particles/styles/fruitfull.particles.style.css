@@ -1,0 +1,35 @@
+/* :root {
+    --color--white: white;
+    --color--black: black;
+    --radius--desktop: 1.25rem;
+    --color--green-900: #054f31;
+    --color--peach: #fee9d1;
+    --color--green-100: #d9ffe0;
+    --color--orange-100: #fef0c7;
+    --hovercard--title: 2.5em;
+    --radius--button: 5rem;
+    --color--grey-400: #c1c7d1;
+    --color--grey-100: #f5f7fb;
+    --color--droplet-100: #eff7ff;
+    --color--grey-800: #5b616b;
+    --color--droplet-200: #dff0ff;
+    --color--green-600: #039855;
+    --color--green-500: #1e8574;
+} */
+
+body{
+    position: relative;
+    min-height: 100vh;
+}
+canvas#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999 !important ; /* Ensures the canvas is on top of all other elements */
+    background-color: transparent;
+}
+
+
+

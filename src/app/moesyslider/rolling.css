@@ -1,0 +1,19 @@
+
+.text-wrapper {
+  display: inline-block;
+  line-height: 100%;
+  height:16px;
+  overflow: hidden;
+}
+.text-wrapper .letter {
+  display: inline-block;
+  transition: transform 0.25s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.letterRollDown {
+  transform: translateY(100%);
+}
+.letterShown {
+  transform: translateY(0%);
+}
+

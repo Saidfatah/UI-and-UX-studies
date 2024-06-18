@@ -1,0 +1,175 @@
+@keyframes reveal {
+    from {
+        transform: translateY(100%);
+        filter:blur(5px)
+    }
+    to {
+        transform: translateY(0%);
+        filter:blur(0px)
+    }
+}
+
+@keyframes hide {
+    0% {
+        transform: translateY(0%);
+    }
+
+    100% {
+        transform: translateY(-120%);
+    }
+}
+
+.overflowWrapper {
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 24px;
+     /* height: 1em; */
+}
+
+.revealAbleSpan {
+     display: inline-block;
+     transform: translateY(100%);
+     letter-spacing: 0.04em;
+}
+
+.revealed {
+    animation: reveal 0.5s forwards cubic-bezier(0, 0.55, 0.45, 1);
+}
+
+.hidden-animation {
+    animation: hide 0.75s forwards cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+
+
+@keyframes fadeInBorder {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.revealAbleButton {
+    display: inline-block;
+    opacity:0
+}
+
+
+
+.fadeInButton {
+    animation: fadeIn 0.5s forwards cubic-bezier(0, 0.55, 0.45, 1);
+}
+
+.fadeOutButton {
+    animation: fadeOut 0.75s forwards cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+
+
+@keyframes loadVerticalProgress {
+    0% {
+        height: 0% !important;
+    }
+    100%{
+        height: 100% !important;
+    }
+}
+
+.loadVerticalProgress {
+    animation: loadVerticalProgress 5s forwards cubic-bezier(0.87, 0, 0.13, 1);
+}
+@keyframes fadeOut {
+    0% {
+        opacity: 1 !important;
+    }
+    100%{
+        opacity: 0 !important;
+    }
+}
+
+.fadeOut {
+    animation: fadeOut 0.25s forwards cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+.verticalProgress {
+   width: 4px;
+   height: 0%;
+   background-color: white;
+   margin-right: 8px;
+   position: absolute;
+   z-index: 9;
+   left: 0;
+   bottom:0 ;
+}
+
+
+
+.buttonWithAnimateAbleBorder {
+    width: fit-content;
+    height: fit-content;
+    padding: 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.6);
+  }
+  
+
+
+
+
+@keyframes fadeInBorder {
+    from {
+        border-color: black;
+    }
+    to {
+        border-color: white;
+    }
+}
+
+  .buttonWithAnimateAbleBorder:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height:100%;
+
+    border-radius: 25px;
+
+    border: 1px solid;   
+    border-color: black;
+
+    border-right: none;
+    border-bottom: none; 
+
+    opacity: 1;
+
+    animation: fadeInBorder 4s forwards cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  
+  

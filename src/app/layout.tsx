@@ -34,10 +34,22 @@ const helviticaNue = localFont({
       variable: '--font-ITCAvantGardeStdDemi',
       style: 'normal',
     },
+    {
+      path: '../../public/fonts/NeueMontreal-Medium.otf',
+      weight: '400',
+      variable: '--font-NeueMontrealMedium',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/NeueMontreal-Light.otf',
+      weight: '400',
+      variable: '--font-NeueMontrealLight',
+      style: 'normal',
+    },
   ],
   display: 'swap',
 })
- 
+
 
 export const metadata: Metadata = {
   title: "Create Next App",

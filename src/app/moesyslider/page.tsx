@@ -1,12 +1,14 @@
 "use client"
 import React, { useRef, useEffect, useState, ReactNode } from "react";
+import clsx from "../../../node_modules/clsx/clsx";
 import './moesySlider.css'
+import RollingText from "./RollingText";
 // https://mosey.com/
 
 const HORIZONTAL_PADDING = 30
 const FIRST_THIRD = 33
 const SECOND_THIRD = 66
-const THIRD_MARK_LENGTH = 2
+const THIRD_MARK_LENGTH = 0.5
 
 const getStepText = (progress: number) => {
     if (progress >= 0 && progress < 33) {
@@ -19,7 +21,8 @@ const getStepText = (progress: number) => {
 };
 
 
-const animatePopup = (element: HTMLDivElement, className?: string,duration?:number) => {
+const animatePopup = (element: HTMLDivElement, className?: string, duration?: number) => {
+    element.classList.remove(className ?? "popup");
     element.classList.add(className ?? "popup");
     setTimeout(() => {
         element.classList.remove(className ?? "popup");
@@ -52,7 +55,7 @@ function MoesySlider() {
     const stepLabelRef = useRef<HTMLDivElement>(null);
     const imageRef = useRef<HTMLImageElement>(null);
     const [progress, setProgress] = useState(0);
-    const [step, setStep] = useState(data[0]);
+    const [stepIndex, setStepIndex] = useState(0);
 
 
     useEffect(() => {
@@ -92,8 +95,8 @@ function MoesySlider() {
             if (loaderBarRef.current && firstThirdRef.current && secondThirdRef.current) {
                 const percentage = getPercentage()
 
-                const isInFirstThirdMark = (percentage > FIRST_THIRD && percentage < FIRST_THIRD + THIRD_MARK_LENGTH)
-                const isInSecondThirdMark = (percentage > SECOND_THIRD && percentage < SECOND_THIRD + THIRD_MARK_LENGTH)
+                const isInFirstThirdMark = (percentage >= FIRST_THIRD && percentage < FIRST_THIRD + THIRD_MARK_LENGTH)
+                const isInSecondThirdMark = (percentage >= SECOND_THIRD && percentage < SECOND_THIRD + THIRD_MARK_LENGTH)
 
                 if (isInFirstThirdMark || isInSecondThirdMark) {
                     wasInFirstThird = isInFirstThirdMark && !isInSecondThirdMark
@@ -127,13 +130,13 @@ function MoesySlider() {
 
     useEffect(() => {
         if (progress < FIRST_THIRD) {
-            setStep(data[0])
+            setStepIndex(0)
         }
         if (progress > FIRST_THIRD && progress < SECOND_THIRD) {
-            setStep(data[1])
+            setStepIndex(1)
         }
         if (progress > SECOND_THIRD) {
-            setStep(data[2])
+            setStepIndex(2)
         }
     }, [progress]);
 
@@ -155,17 +158,63 @@ function MoesySlider() {
                         paddingLeft: HORIZONTAL_PADDING
                     }}
                 >
-                    <div className="flex flex-col justify-between p-[24px] h-full w-full">
+                    <div className="relative flex flex-col justify-between p-[24px] h-full w-full">
 
-                        <div className="absolute  top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[500px] h-[500px]">
+                        <div className="absolute  top-1/2 -translate-y-1/2  left-0 w-full h-[500px]">
                             <div className="relative w-full h-full" >
-                                <h3 className="absolute uppercase text-[60px] top-[-30px] left-[-20px]" >{step.title}</h3>
-                                <div className="absolute text-[16px] bottom-[30px] w-[500px] left-1/2 -translate-x-1/2 pl-[12px]">
-                                    <p className="text-[16px] font-light ">{step.description}</p>
-                                </div>
+                                {/* <h3 className="absolute uppercase text-[60px] top-[-30px] left-[-20px]" >{step.title}</h3> */}
+                                {/* <div className="absolute text-[16px] bottom-[30px] w-[500px] left-1/2 -translate-x-1/2 pl-[12px]">
+                                    {/* <p className="text-[16px] font-light ">{step.description}</p> */}
+                                {/* {
+                                        stepIndex === 0 && (<RollingText key="title1" word={data[0].title} />)
+                                    }
+                                    {
+                                        stepIndex === 1 && (<RollingText key="title2" word={data[1].title} />)
+                                    }
+                                    {
+                                        stepIndex === 2 && (<RollingText key="title3" word={data[2].title} />)
+                                    } */}
+                                {/* </div> */}
+
+
+
+                                <img
+                                    style={{
+                                        filter: stepIndex !== 0 ? 'blur(2px)' : '',
+                                        opacity: stepIndex !== 0 ? 0.5 : 1
+
+                                    }}
+                                    className={clsx(
+                                        "absolute left-[24px]  top-1/2 -translate-y-1/2   w-[calc(33%-24px)] h-auto  rounded-[24px]",
+                                        stepIndex !== 0 && "skew-x-1"
+                                    )}
+                                    src={data[0].img}
+                                />
+                                <img
+                                    style={{
+                                        filter: stepIndex !== 1 ? 'blur(2px)' : '',
+                                        opacity: stepIndex !== 1 ? 0.5 : 1
+
+                                    }}
+                                    className={clsx(
+                                        "absolute left-1/2 -translate-x-1/2 z-[12] top-1/2 -translate-y-1/2  w-[calc(33%-24px)] h-auto  rounded-[24px]",
+                                        stepIndex !== 1 && "skew-x-1"
+                                    )}
+                                    src={data[1].img}
+                                />
+
                                 <img
                                     ref={imageRef}
-                                    className=" inline-block w-[500px] h-[500px] rounded-[24px]" src={step.img}
+                                    style={{
+                                        filter: stepIndex !== 2 ? 'blur(2px)' : '',
+                                        opacity: stepIndex !== 2 ? 0.5 : 1
+
+                                    }}
+                                    className={clsx(
+                                        "absolute right-[24px] top-1/2 -translate-y-1/2  w-[calc(33%-24px)] h-auto  z-[9] rounded-[24px]",
+                                        stepIndex !== 2 && "skew-x-1"
+                                    )}
+                                    src={data[2].img}
                                 />
                             </div>
                         </div>

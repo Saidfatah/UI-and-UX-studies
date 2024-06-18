@@ -54,18 +54,16 @@ span{
 }
 
 .letterSlide{
-    animation: letterSlideRotateIn 0.5s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+    animation: letterSlideRotateIn 1.5s cubic-bezier(0.87, 0, 0.13, 1) forwards;
 }
 
 @keyframes letterSlideRotateIn {
     from{
         opacity: 0;
-         /* filter: blur(10px); */
-        transform: translate3d(0%, 100%, 0px) rotateX(50deg);
+        transform: translate3d(-50%, -100%, 10px) skewX(90deg) rotateX(90deg);
     }
     to{
-        transform: translate3d(0%, 0%, 0px) rotateX(0deg);
-        /* filter: blur(0px); */
+        transform: translate3d(0%, 0%, 0px) skewX(0deg) rotateX(0deg);
         opacity: 1;
     }
 }
