@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { delayStep, hideTextDuration, phrasesGroupLoopDuration, phrasesGroups, revealTextDuration } from './constants';
 import "./animation.css"
 import "./imageWrapperAnimations.css"
+import "./griadientMorph.textReveal.css"
 import PhrasesGroup from './PhrasesGroup';
 import ImageReveal from './ImageReveal';
+import GradiantMorphBgTextReveal2 from './GradiantMorphBgTextReveal2';
 
 
 const images = [
@@ -34,6 +36,7 @@ const TextRevealContainer = () => {
 
     return (
         <div className='w-screen h-screen bg-black flex justify-center items-center'>
+            <GradiantMorphBgTextReveal2 />
             <div className='relative h-[190px] w-[500px] flex flex-col justify-between'>
 
 

@@ -2,6 +2,7 @@ export const hideTextDuration=0.75
 export const fadeOutButtonDuration=hideTextDuration
 export const revealTextDuration=0.5
 export const phrasesGroupLoopDuration=5
+
 export const delayStep = 0.1;
 
 export const phrasesGroups = [

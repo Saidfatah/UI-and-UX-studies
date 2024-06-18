@@ -1,0 +1,160 @@
+html, body {
+    font-family: 'Dongle', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .text-container {
+    z-index: 100;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    justify-content: center;
+    align-items: center;
+    font-size: 96px;
+    color: white;
+    opacity: 0.8;
+    user-select: none;
+    text-shadow: 1px 1px rgba(0,0,0,0.1);
+  }
+  
+  :root {
+    --color-bg1: rgb(90, 12, 135);
+    --color-bg2: rgb(17, 39, 138);
+    --saidfatahColor: 151, 194, 229;   
+    --saidGouzalColor: 129, 199, 253;  
+    --saidMechkouriColor: 255, 255, 255;  
+    --NabilColor: 162, 123, 106;  
+
+    --color2: 75, 0, 130;    /* Purple */
+    --color3: 230, 230, 0;   /* Yellow */
+    --color4: 255, 215, 0;   /* Yellow */
+    --color5: 255, 255, 102; /* Light Yellow */
+    --color-interactive: 140, 100, 255;
+    --circle-size: 50vh;
+    --blending: soft-light;
+  }
+  
+ 
+  .gradient-bg {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    overflow: hidden;
+    background: linear-gradient(40deg, var(--color-bg1), var(--color-bg2));
+    top: 0;
+    left: 0;
+  }
+
+  .bgBase{
+    background: linear-gradient(40deg, var(--color-bg1), var(--color-bg2));
+  }
+  
+  .gradient-bg svg {
+    display: none;
+  }
+  
+  .gradient-bg .gradients-container {
+    filter: url(#goo) blur(40px);
+    width: 100%;
+    height: 100%;
+  }
+  
+ 
+  .gradientPosition{
+    position: absolute;
+
+    transform-origin: center center;
+    
+    width:var(--circle-size);
+    height:var(--circle-size);
+    top: calc(50% - var(--circle-size)/2);
+    /* right: calc(-50vh); */
+     left:150px    ;
+    mix-blend-mode:difference;
+  }
+
+
+@keyframes movingHorizontally {
+    0%{
+         transform: translateX(100%);
+    }
+    15%{
+        transform: translateX(-70%);
+    }
+    89%{
+        transform: translateX(-70%);
+    }
+    90%{
+        transform: translateX(50%);
+    }
+    100%{
+        transform: translateX(100%);
+    }
+}
+
+
+
+.extraGradient{
+position: absolute;
+
+transform-origin: center center;
+
+width:var(--circle-size);
+height:var(--circle-size);
+top: calc(0% - var(--circle-size)/2);
+/* right: calc(-50vh); */
+  right:calc(0% - var(--circle-size)/2);
+mix-blend-mode:soft-light;
+background: radial-gradient(circle at center, rgba(var( --color2), 0.4) 0, rgba(var( --color2), 0) 50%) no-repeat;
+animation: movingHorizontally 5s infinite cubic-bezier(0.76, 0, 0.24, 1)   ;
+}
+
+@keyframes fadeInFadeOut {
+    0%{
+        opacity: 0;
+        filter: blur(10px);
+    }
+    10%{
+        filter: blur(0px);
+        opacity: 1;
+    }
+    75%{
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100%{
+        opacity: 0;
+        filter: blur(10px);
+    }
+}
+
+.gradientCircleFadeInFadeOut{
+    animation: fadeInFadeOut 8s cubic-bezier(0.76, 0, 0.24, 1) forwards  ;
+    opacity: 0;
+  }
+ 
+  .gradientCircleSaidFatah {
+    background: radial-gradient(circle at center, rgba(var(--saidfatahColor), 0.8) 0, rgba(var(--saidfatahColor), 0) 50%) no-repeat;
+  }
+ 
+  
+  .gradientCircleSaidGouzal {
+    background: radial-gradient(circle at center, rgba(var(--saidGouzalColor), 0.8) 0, rgba(var(--saidGouzalColor), 0) 50%) no-repeat;
+
+  }
+ 
+  .gradientCircleNabil {
+    background: radial-gradient(circle at center, rgba(var(--NabilColor), 0.8) 0, rgba(var(--NabilColor), 0) 50%) no-repeat;
+
+  }
+ 
+ 
+  .gradientCircleMechkouri {
+    background: radial-gradient(circle at center, rgba(var(--saidMechkouriColor), 0.8) 0, rgba(var(--saidMechkouriColor), 0) 50%) no-repeat;
+
+  }
+ 

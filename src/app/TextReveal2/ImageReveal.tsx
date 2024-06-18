@@ -23,7 +23,7 @@ const BlackBar = ({ height, top, delay, appearDelay }: { height: number, appearD
 
     return (<div
         ref={ref as any}
-        className="absolute w-full bg-black"
+        className="absolute w-full bgBase"
         style={{
             height: `${height}px`,
             top: `${top}px`,
