@@ -7,7 +7,12 @@ import PhrasesGroup from './PhrasesGroup';
 import ImageReveal from './ImageReveal';
 
 
-
+const images = [
+    '/images/saidFatahImage.jpeg',
+    '/images/nabilImage.jpeg',
+    '/images/saidGouzal.jpeg',
+    '/images/mechkouri.jpeg'
+]
 
 const loopInterval = (phrasesCount: number) => (phrasesGroupLoopDuration + hideTextDuration + revealTextDuration + delayStep * phrasesCount) * 1000
 
@@ -31,27 +36,28 @@ const TextRevealContainer = () => {
         <div className='w-screen h-screen bg-black flex justify-center items-center'>
             <div className='relative h-[190px] w-[500px] flex flex-col justify-between'>
 
+
                 {currentPhraseGroupIndex === 0 && (
                     <>
-                        <ImageReveal src="/images/saidFatahImage.jpeg" delay={delayStep} />
+                        <ImageReveal src={images[currentPhraseGroupIndex]} delay={delayStep} />
                         <PhrasesGroup key="1" index={0} />
                     </>
                 )}
                 {currentPhraseGroupIndex === 1 && (
                     <>
-                        <ImageReveal src="/images/nabilImage.jpeg" delay={delayStep} />
+                        <ImageReveal src={images[currentPhraseGroupIndex]} delay={delayStep} />
                         <PhrasesGroup key="2" index={1} />
                     </>
                 )}
                 {currentPhraseGroupIndex === 2 && (
                     <>
-                        <ImageReveal src='/images/saidGouzal.jpeg' delay={delayStep} />
+                        <ImageReveal src={images[currentPhraseGroupIndex]} delay={delayStep} />
                         <PhrasesGroup key="3" index={2} />
                     </>
                 )}
                 {currentPhraseGroupIndex === 3 && (
                     <>
-                        <ImageReveal src='/images/mechkouri.jpeg' delay={delayStep} />
+                        <ImageReveal src={images[currentPhraseGroupIndex]} delay={delayStep} />
                         <PhrasesGroup key="4" index={3} />
                     </>
                 )}

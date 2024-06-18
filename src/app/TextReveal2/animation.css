@@ -5,7 +5,7 @@
     }
     to {
         transform: translateY(0%);
-        filter:blur(0px)
+        filter:blur(0px);
     }
 }
 
