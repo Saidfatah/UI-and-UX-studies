@@ -1,0 +1,45 @@
+.likeButton{
+    width: 2.5rem;
+    height: 2.5rem;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 9999px;
+    transition: var(--scale-transition);
+}
+
+.likeButton .heartIcon{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 26px;
+    height: 24px;
+    transition: var(--scale-transition);
+}
+
+
+
+
+
+
+@keyframes circle {
+    0% {
+        transform: scale(0);
+        stroke-width: 16px;
+    }
+    
+    50% {
+        transform: scale(.5);
+        stroke-width: 16px;
+    }
+    100% {
+        transform: scale(1);
+        stroke-width: 0px;
+    }
+}
+
+.likeButtonCircleAnimation{
+    animation: circle .3s forwards;
+}
