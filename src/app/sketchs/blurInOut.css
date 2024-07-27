@@ -1,0 +1,13 @@
+@keyframes blurInOut {
+    0%{
+        filter: blur(12px);
+    }
+    100%{
+        filter: blur(0px);
+    }
+}
+
+.blurInOut{
+    filter: blur(12px);
+    animation: blurInOut 15s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
