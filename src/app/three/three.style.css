@@ -1,0 +1,11 @@
+htm,body,#root{
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+.canvasParent{
+    height: 100vh;
+    width: 100vw;
+}
