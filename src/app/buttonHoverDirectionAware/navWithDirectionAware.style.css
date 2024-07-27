@@ -1,0 +1,80 @@
+/* resets */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+/* visual stuff */
+body {
+  display: grid;
+  place-items: center;
+
+  min-height: 100vh;
+  background-color: #222;
+  color: #fff;
+}
+
+ul {
+  font-family: system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+/* main stuff */
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+li {
+  position: relative;
+  padding-inline: 1em;
+  padding-block: 0.5em;
+  overflow-x: hidden;
+}
+
+li::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 7px;
+  background-color: hsl(0, 0%, 55%);
+
+  scale: 0 1;
+
+  transition-timing-function: ease;
+  transition-duration: 250ms;
+  transition-property: scale, translate;
+}
+
+li:hover::after {
+  scale: 1 1;
+}
+
+@supports (selector(:has(*))) {
+  li:hover + li::after {
+    translate: -100% 0;
+  }
+
+  li:has(+ li:hover)::after {
+    translate: 100% 0;
+  }
+}

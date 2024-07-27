@@ -1,0 +1,90 @@
+
+*{
+    --span-height:30px;
+    --padding:0px;
+    --y-transition-duration:.5s;
+    --y-bottom-top-part-duration:0.5s;
+    --y-bottom-top-part-delay:.1s;
+    --y:-30px;
+}
+
+.buttonWithDirectionAwareHoverArea{
+    padding:var(--padding);
+    width: 190px;
+    height: var(--span-height);
+    box-sizing: border-box;
+    background: white;
+    border-radius: 25px;
+
+    color: black;
+}
+
+
+
+.buttonDirectionAwareHoverArea{
+    translate: 0 var(--y);
+    transition: translate var(--y-transition-duration)  ;
+    height: fit-content;
+    display:  flex;
+    flex-direction: column;
+    position: relative;
+
+}
+
+
+
+.topHoverPart, .bottomHoverPart{
+    display: inline-block;
+    color:red;
+    opacity: 0;
+    transition: all var(--y-bottom-top-part-duration) ;
+}
+
+/* .topHoverPart{
+     transform:  rotateX(-45deg);
+     transform-origin: top;
+}
+
+.bottomHoverPart{
+     transform:  rotateX(45deg);
+     transform-origin: bottom;
+} */
+
+.top_half, .bottom_half{
+height: 50%;
+width: 100%;
+position: absolute;
+z-index: 3;
+left: 0;
+
+}
+.top_half{
+    top: 0;
+}
+.bottom_half{
+bottom: 0;
+
+}
+
+
+.top_half:hover ~ .topHoverPart {
+    opacity: 1;
+    transform:  rotateY(0deg)
+}
+
+.bottom_half:hover ~ .bottomHoverPart{
+    opacity: 1;
+    transform:  rotateY(0deg)
+}
+
+
+.buttonDirectionAwareHoverArea:has(.translateTrigger:first-child:hover){
+    --y: 0; 
+}
+  
+.buttonDirectionAwareHoverArea:has(.translateTrigger:nth-child(3):hover){
+    --y: calc(-30px * 2);
+}
+
+
+
