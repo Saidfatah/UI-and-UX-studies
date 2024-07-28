@@ -21,6 +21,6 @@
       "@/*": ["./src/*"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/three/page.jsx", "src/app/three/Wave/index.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/morrocanFlag/page.jsx", "src/app/three/Wave/index.jsx"],
   "exclude": ["node_modules"]
 }

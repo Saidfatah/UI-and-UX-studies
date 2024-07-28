@@ -12,7 +12,7 @@ void main() {
 
     vec3 imageTextureColor= texture2D(uImageTexture,vUv+wave).rgb;
     
-    vec3 dirtColor = texture2D(uDirtTexture, vUv+wave).rgb;
+    vec3 dirtColor = texture2D(uDirtTexture, vUv+wave).rgb *(1.0 + sin(vUv.x + uTime));
     
     vec3 finalColor = imageTextureColor * dirtColor;
 
