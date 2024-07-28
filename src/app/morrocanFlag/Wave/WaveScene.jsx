@@ -6,7 +6,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import fragShader from './wave.frag.glsl'
 import vertexShader from './wave.vertex.glsl'
 
-const saidfatahImage = '/images/saidFatahImage.jpeg'
+const saidfatahImage = '/images/saidFatahImage.jpeg' //
 const moroccanFlagImagePath = '/images/Flag_of_Morocco.png'
 const wallTextureImagePath = '/images/walltexture.jpg'
 
