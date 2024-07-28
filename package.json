@@ -18,7 +18,8 @@
     "@types/p5": "^1.7.6",
     "@types/three": "^0.167.1",
     "clsx": "^2.1.1",
-    "glsl-noise": "0.0.0",
+    "glsl-noise": "^0.0.0",
+    "glslify-loader": "^2.0.0",
     "next": "14.2.2",
     "p5": "^1.9.4",
     "react": "^18",
@@ -33,6 +34,7 @@
     "babel-plugin-glsl": "^1.0.0",
     "glslify": "^7.1.1",
     "postcss": "^8",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
