@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+
+.title{
+    color: #221d1d;
+    color: color(display-p3 .1255 .1137 .1137);
+    font-family: var(--font-brand);
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 135%;
+    letter-spacing: -.8px;
+}
+.description{margin-top: 12px;
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 135%;
+    letter-spacing: -.33px;
+    color: #636161;
+    color: color(display-p3 .3882 .3804 .3804);
+}
+
+.page{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+
+.logosContainer{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    grid-gap: 9px;
+    gap: 9px;
+    margin-top: 72px;
+    max-width: 986px;
+}
+
+.logsGrid{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    grid-gap: 9px;
+    gap: 9px;
+}
+
+
+
+.aaveBuilder{
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 20px;
+    background: #F7F6F6;
+    will-change:transform ;
+    transform-origin: bottom ;
+
+    transform: scale(0.4);
+    opacity: 0;
+}
+
+.aaveBuilder[data-mounted="true"] {
+    transition: all 0.7s calc(var(--index) * 0.1s) cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(1);
+    opacity: 1;
+}
+
+.aaveBuilder:hover {
+    transition: all 0.2s cubic-bezier(0.87, 0, 0.13, 1);
+    transform: scale(1.05);
+}
+
+
+.aaveBuilderInner{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.aaveBuilderHint{
+    position: absolute;
+    left: 50%;
+    top: -56px;
+    z-index: 99;
+    opacity: 0;
+    transform:  translateX(-50%) translateY(18px) scale(0.5);
+    transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: bottom;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 6px;
+
+    
+    padding: 12px 16px;
+    border: 1px solid #000;
+    border-radius: 50px;
+    min-width: max-content;
+    background-color: #211d1d;
+    box-shadow: 0 2px 3px 0 rgba(0,0,0,.08),0 6px 16px 0 rgba(0,0,0,.1);
+    
+    white-space: nowrap;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -.18px;
+    color: #fff;
+    pointer-events: none;
+}
+
+.aaveBuilder:hover .aaveBuilderHint{
+    opacity: 1;
+    transform:translateX(-50%) translateY(0px) scale(1) ;
+}
+
+
+.arrowRight{
+    flex-shrink: 0;
+}
+
+.aaveLogoContainer{
+    width: 322px;
+    height: 322px;
+    position: relative;
+    z-index: -1;
+    border-radius: 20px;
+    background: #9391F7;
+    
+    transform: scale(1.5);
+    transform-style: preserve-3d;
+    perspective: 200px;
+
+    opacity: 0;
+    overflow: hidden;
+}
+
+.aaveLogoContainer[data-mounted="true"] {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(1);
+    opacity: 1;
+}
+
+.aaveLogo{
+    width: 200px;
+    height: 100px;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%) scale(2);
+    opacity: 0;
+}
+
+.aaveLogo[data-mounted="true"] {
+    transition: all 0.4s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 1;
+}
+
+.aaveLogoInner{
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+
+.logoEyesPosition{
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.logoEyes{
+    display: flex;
+    gap: 13px;
+}
+.left-eye , .right-eye{
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 100%;
+}

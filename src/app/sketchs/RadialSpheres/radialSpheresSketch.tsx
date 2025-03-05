@@ -1,4 +1,4 @@
-import { P5jsSketch } from "./p5Container";
+import { P5jsSketch } from "../p5Container";
 
 export const MySketch: P5jsSketch = (p, parentRef) => {
     p.setup = () => {

@@ -1,0 +1,33 @@
+@keyframes reveal {
+    from {
+        transform: translateY(100%);
+        filter:blur(5px)
+    }
+    to {
+        transform: translateY(0%);
+        filter:blur(0px);
+    }
+}
+
+.revealed {
+    animation: reveal 0.5s forwards cubic-bezier(0, 0.55, 0.45, 1);
+}
+
+
+.textItem{
+    font-size: 16px;
+    letter-spacing: 0.03em;
+    color: black;
+    line-height: 16px;
+}
+
+.revealAbleText {
+    display: inline-block;
+    transform: translateY(100%);
+}
+
+.overflowWrapper {
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 24px;
+}

@@ -1,4 +1,4 @@
-import { P5jsSketch } from "./p5Container";
+import { P5jsSketch } from "../p5Container";
 import p5 from 'p5'
 
 const imageUrl = "/images/saidFatahImage.jpeg"

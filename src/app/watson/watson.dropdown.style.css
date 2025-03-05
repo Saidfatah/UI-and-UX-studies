@@ -1,0 +1,84 @@
+*{
+    --easeOutCirc:cubic-bezier(0, 0.55, 0.45, 1);
+    --easeInOutExpo:cubic-bezier(0.87, 0, 0.13, 1);
+    --fadeInDuration:0.5s;
+    --dropDownItemsBackDropScaleInFadeInDuration:0.5s;
+    --dropDownItemsBackDropScaleOutFadeOutDuration:0.2s;
+    --scaleInDuration:0.2s;
+}
+
+.dropDownItemsContainer  .textItem{
+    color: white;
+}
+
+.selectedItem{
+    color: black !important;   
+}
+
+.dropDownItemsContainer{
+    position: relative;
+    padding: 8px;
+    transform: translateY(calc(-8px + -16px)) translateX(-8px);
+}
+
+.dropDownItems{
+    position: relative;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transition: all var(--fadeInDuration) var(--easeOutCirc);
+}
+
+.dropDownItemsContainer:hover .dropDownItems{
+    opacity: 1;
+}
+
+
+.dropDownItemsBackDrop{
+    width: 100%;
+    height: 100%;
+    background: black;
+    border-radius: 12px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    transform-origin: top left;
+    transform: scale(0.7);
+    opacity: 0;
+}
+
+
+@keyframes dropDownItemsBackDropScaleInFadeInAnimationFrames {
+    0%{
+        opacity: 0 ;
+        transform: scale(0.7) ;
+    }
+    100%{
+        opacity: 1 ;
+        transform: scale(1) ;
+    }
+}
+
+.dropDownItemsBackDropScaleInFadeInAnimation{
+    transform: scale(0.7);
+    opacity: 0;
+    animation: dropDownItemsBackDropScaleInFadeInAnimationFrames var(--dropDownItemsBackDropScaleInFadeInDuration) var(--easeInOutExpo) forwards;
+}
+
+@keyframes dropDownItemsBackDropScaleOutFadeOutAnimation {
+    0%{
+        opacity: 1 ;
+        transform: scale(1) ;
+    }
+    100%{
+        opacity: 0 ;
+        transform: scale(0.7) ;
+    }
+}
+
+.dropDownItemsBackDropScaleOutFadeOutAnimation{
+    animation: dropDownItemsBackDropScaleOutFadeOutAnimation var(--dropDownItemsBackDropScaleInFadeInDuration) var(--easeInOutExpo) forwards;
+}
