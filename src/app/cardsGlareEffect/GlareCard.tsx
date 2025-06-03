@@ -55,7 +55,7 @@ function GlareCard({ title, description, contributors, events, icon }: CardData)
 
             </div>
 
-            <Glare icon={icon} parentRef={ref} />
+            <Glare parentRef={ref} />
         </div >
     </div>
     );

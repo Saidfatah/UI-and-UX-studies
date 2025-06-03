@@ -64,7 +64,7 @@ const Fruitfull = () => {
         <>
             {/* <FruitFullNav /> */}
             <BezierAnimation ref={bezierAnimationRef} />
-            <div className='center_wrapper flex-col gap-[8px]' >
+            <div className='center_wrapper bg-black flex-col gap-[8px]' >
                 <div className='mb-[8px]' >
                     <h1 ref={titleRef as any} className='h-display mb-[8px]' >Our pricing is
                         <span className='ml-[27px]' >

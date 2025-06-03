@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from 'next/font/local'
 import "./globals.css";
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+
 
 const helviticaNue = localFont({
   src: [
@@ -63,7 +66,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={helviticaNue.className}>{children}</body>
+      <body className={GeistSans.className}>{children}</body>
     </html>
   );
 }

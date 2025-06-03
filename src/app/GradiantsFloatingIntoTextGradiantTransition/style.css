@@ -1,0 +1,33 @@
+
+  @keyframes scale {
+    0% {
+        transform:scale(1) ;
+    }
+    50% {
+        transform:scale(5) ;
+    }
+    100% {
+        transform:scale(1) ;
+    }
+  }
+  
+  .scaleAnimation{
+    animation: scale 5s  cubic-bezier(0.76, 0, 0.24, 1) infinite;
+    transform-style: preserve-3d;
+    perspective: 100px;
+  }
+
+
+.title{
+        background:  linear-gradient(
+            90.2deg,
+            white 0%,
+            #3a2460 50.8%,
+            #832cfe 73.9%,
+            #2fdbfa 88.29%,
+            #8dd99c 90%,
+          );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+}

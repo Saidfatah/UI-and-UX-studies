@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Electrolize&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Sora:wght@100..800&display=swap');
+
+*{
+    font-family: "Electrolize", sans-serif;
+}
+.pin-wrapper{
+    position: relative;
+    width: 100%;
+    height: 3000px;
+}

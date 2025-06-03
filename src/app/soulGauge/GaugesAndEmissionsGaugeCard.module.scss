@@ -1,0 +1,161 @@
+@use 'sass:map';
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 7.5rem;
+  padding: 0 0.6rem 0 1.8rem;
+  border-radius: 0 0.8rem 0.8rem 0;
+  background: #0d0d0d;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: block;
+    width: 0.2rem;
+    height: 100%;
+    background: var(--theme-color);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+  }
+
+  &.supply {
+    &::after {
+      background: radial-gradient(rgba(#917ffe, 0.3), #0d0d0d);
+    }
+  }
+
+  &.borrow {
+    &::after {
+      background: radial-gradient(rgba(#74d4b6, 0.3), #0d0d0d);
+    }
+  }
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.valueContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  transform: 0.3px;
+}
+
+.label {
+  font-size: 1.2rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.036rem;
+  color: var(--white);
+  text-transform: capitalize;
+}
+
+.value {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.4rem;
+  line-height: 1.75rem;
+  letter-spacing: 0.042rem;
+  color: var(--theme-color);
+}
+
+.assetIcon {
+  display: block;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 100%;
+  object-fit: contain;
+}
+
+
+
+
+.gauge {
+  position: absolute;
+  top: 55%;
+  right: -0.05rem;
+  z-index: 2;
+  display: block;
+  flex-shrink: 0;
+  transform: translate(calc(50% - 1px), -50%) scale(1);
+  width: fit-content;
+  height: fit-content;
+}
+
+
+
+.gaugeGradientStart {
+  stop-color: white;
+}
+
+.gaugeGradientMiddle {
+  stop-color:rgb(72, 72, 222);
+}
+
+.gaugeGradientEnd {
+  stop-color:rgb(72, 72, 222);
+}
+
+.gaugeRemaining {
+  stroke:  rgb(106, 106, 220);
+  opacity: 0.2;
+}
+
+.gaugeArrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform:translate(-50%, -50%) rotate(90deg);
+}
+
+@keyframes fadeIn {
+  0%{
+    opacity: 0;
+  }
+  50%{
+    opacity: 0.5;
+  }
+  100%{
+    opacity: 0;
+  }
+}
+.bgBlur {
+  content: "";
+  opacity: 0;
+  border-radius: 100%;
+  width: 24px;
+  height: 24px;
+  background: #a797ff4d;
+  opacity: 0.6;
+  filter: blur(4px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: fadeIn 5s 1.5s forwards;
+}

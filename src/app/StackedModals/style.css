@@ -1,0 +1,12 @@
+.modal{
+    display: grid;
+    place-items: center;
+}
+.modalContent{
+    grid-area:1/1;
+}
+
+.text-omni-light {
+    --tw-text-opacity: 1;
+    color: rgb(255 229 211 / var(--tw-text-opacity));
+}

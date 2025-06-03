@@ -1,0 +1,41 @@
+@keyframes dashMove {
+  0% {
+      stroke-dashoffset: 393;
+  }
+  100% {
+      stroke-dashoffset: 0;
+  }
+}
+.dashAnimation {
+  /* animation: dashMove 2s cubic-bezier(0.76, 0, 0.24, 1) infinite; */
+  animation: dashMove 2s 0.2s ease infinite;
+}
+
+
+@keyframes ringPulse {
+  0% {
+      box-shadow: 0 0 2px 2px #13131680;
+  }
+  50% {
+      box-shadow: 0 0 2px 2px rgb(122, 0, 0);
+  }
+  100% {
+      box-shadow: 0 0 2px 2px #13131680;
+  }
+}
+
+.animate-ring-pulse {
+  animation: ringPulse 2s infinite cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+
+.from-white\/5 {
+  --tw-gradient-from: hsla(0, 0%, 100%, .05) ;
+  --tw-gradient-to: hsla(0, 0%, 100%, 0) ;
+  --tw-gradient-stops: var(--tw-gradient-from);
+}
+
+.labelConfig{
+  perspective: 200px;
+  transform-style: preserve-3d;
+}
