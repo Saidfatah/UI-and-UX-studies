@@ -1,0 +1,64 @@
+/* Define each font weight */
+@font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Semibold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'TestCalibre';
+    src: url('/fonts/TestCalibre-Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+  }
+
+
+*{
+    font-family: 'TestCalibre';
+}
+
+
+
+.fey-signup {
+ height: 100vh;   
+ width: 100vw;
+ background:rgb(11, 11, 15);
+}
+
+.topContainer {
+    width: 100%;
+    height: 100%;
+    max-width: 1220px;
+    padding: 0px 40px;
+    margin: 0px auto;
+}
+

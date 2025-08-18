@@ -1,0 +1,313 @@
+
+.signup-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.signup-form-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.title-description-container{
+    height: 107.4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    filter: blur(0px);
+    opacity: 1;
+    transition: filter 0.4s, opacity 0.4s;
+}
+
+
+.title-container{
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 120%;
+    color: rgb(134, 143, 151);
+    margin-bottom: 8px;
+}
+
+.title-text-gradient{
+    display: inline-block;
+    background: linear-gradient(
+    90deg,
+    rgb(179, 174, 245) 0.41%,
+    rgb(215, 203, 231) 40.68%,
+    rgb(229, 200, 200) 64.12%,
+    rgb(234, 168, 121) 97.82%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+.description-container{
+    max-width: 311px;   
+    transform: translate(-4.5px, 0px); /* just small adjustment for pixel perfect */
+}
+
+.description{
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 120%;
+    color: rgb(134, 143, 151);
+    margin-bottom: 22px;
+}
+
+
+.email-form{
+    position: relative;
+    width: 320px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    box-shadow: rgba(0, 0, 0, 0.08) 1px 1px 1px inset;
+    backdrop-filter: blur(2px);
+    border-radius: 99px;
+    line-height: 19px;
+    padding: 10px 10px 10px 21px;
+    display: flex;
+    cursor: text;
+    margin-bottom: 27px;
+    transform: translateY(1.6px); /* just small adjustment for pixel perfect */
+}
+
+
+.email-input{
+    line-height: 19px;
+    width: 100%;
+    padding: 0px 8px 1px 0px;
+    color: rgb(255, 255, 255);
+    background: transparent !important;
+    /* delay here is to wait till the button success animation is about to finish  */
+    transition: color 0.3s 1s;
+    border: none;
+    caret-color: rgb(71, 159, 250);
+    max-width: 100%;
+    outline: none !important;
+}
+.email-success{
+    color:#4EBE96;
+}
+
+.email-input:focus{
+    outline: none !important;
+}
+
+.email-input::placeholder{
+    color: rgb(134, 143, 151);
+}
+
+.email-input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: white !important; /* keep text color */
+    background: transparent !important;
+    transition: background-color 9999s ease-in-out 0s; /* prevents flash */
+}
+
+.email-input.email-success:-webkit-autofill {
+    -webkit-text-fill-color: #4EBE96 !important;
+}
+
+.email-form button{
+    width: 24px;
+    height: 24px;
+    bottom: 0.5px;
+    position: relative;
+    cursor: pointer;
+    outline: none !important;
+}
+
+.email-button:focus{
+    outline: none !important;
+}
+
+.email-form button svg{
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+
+.--circle-bg{
+    transition: stroke 0.25s;
+    stroke: rgba(134, 143, 15,0.2);
+}
+
+.default .--circle-bg{
+    stroke: rgb(134, 143, 151);
+}
+ 
+.success .--circle-bg , .sending .--circle-bg{
+    stroke: rgba(134, 143, 15,0.2);
+}
+.valid .--circle-bg {
+    stroke: white;
+}
+
+ 
+.--send{
+    transform-origin: center center;
+}
+.default .--send{
+    stroke: rgb(134, 143, 151);
+}
+.valid .--send{
+    stroke: white;
+}
+
+.sending .--send , .success .--send , .error .--send{
+    transform: scale(0.6) translateX(16px);
+    opacity: 0;
+    transition: 0.4s;
+}
+
+
+
+.--progress{
+    stroke: none;
+    stroke-dasharray: 71;
+    stroke-dashoffset: 54;
+    transform-origin: center center;
+    transition: all 0.3s linear;
+}
+
+.sending .--progress{
+    stroke: white;
+}
+ 
+.success .--progress{
+    stroke: #4EBE96;
+    transition: all 1.5s cubic-bezier(0.45, 0, 0.55, 1) !important;
+    stroke-dashoffset: 143;
+    stroke-dasharray: 71;
+}
+
+
+.--sent {
+    /* 
+      stroke-dasharray defines the pattern of dashes and gaps for the stroke. 
+      Here it's set to 13, which is the total length of the path. 
+      This effectively makes the entire path a "dash" of length 13. 
+      
+      stroke-dashoffset shifts the start of the dash along the path. 
+      Setting it to the same value as stroke-dasharray (13) moves the dash completely out of view,
+      so the path appears hidden.
+    */
+    stroke-dashoffset: 13; 
+    stroke-dasharray: 13; 
+
+    transition: 1.5s cubic-bezier(0.45, 0, 0.55, 1) !important;
+}
+ 
+ 
+.success .--sent {
+     /* 
+      When the parent has the "success" class, increase stroke-dasharray to 26. 
+      Assuming the path length is 26, this makes the entire path visible. 
+      The transition will animate the stroke-dashoffset/dasharray change, creating a "draw" effect.
+    */
+    /* 26 is teh to total path of the --sent path */
+    stroke-dasharray: 26; 
+}
+ 
+
+
+.success svg{
+    animation: scaleUpThenBackTo1  1.5s  cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}   
+
+@keyframes scaleUpThenBackTo1 {
+    0%{
+        transform: scale(1);
+        filter: blur(0px);
+    }
+    50%{
+        transform: scale(1.2);
+        filter: blur(3px);
+    }
+    100%{
+        transform: scale(1);
+        filter: blur(0px);
+    }
+}
+
+
+.signup-footer{
+    height: 22.4px;
+    position: relative;
+    width: 100%;
+    pointer-events: auto;
+    filter: blur(0px);
+    transition: filter 0.4s, opacity 0.4s;
+    opacity: 1;
+    color:white;
+    transform: translate(0px,1px); /* just small adjustment for pixel perfect */
+}
+
+.google-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+}
+
+.back-to-signup-button-container{
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    height: 100%;   
+}
+.back-to-signup-button{
+    color: rgb(134, 143, 151) ;
+    white-space: nowrap;
+}
+
+
+
+
+.terms-of-service{
+    position: relative;
+    padding: 32px 0px 29px;
+    font-weight: 400;
+    width: 100%;
+    opacity: 0;
+    text-align: center;
+    color: rgb(134, 143, 151);
+}
+
+.terms-of-service a{
+    color: rgb(230, 230, 230);
+}
+
+.terms-of-service::before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    margin: 0px auto;
+    width: 514px;
+    height: 1px;
+    background: radial-gradient(50% 1.568e+07% at 50% 49.54%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+
+.blurred-faded{
+  filter: blur(2px);
+  opacity: 0.24;
+}
+
+
+

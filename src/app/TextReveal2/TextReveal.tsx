@@ -22,7 +22,7 @@ const TextReveal = ({ text, delay }: { delay: number, text: string }) => {
 
     return (
         <div className="overflowWrapper">
-            <span className="revealAbleSpan " ref={spanRef as any}>
+            <span className=" text-white revealAbleSpan " ref={spanRef as any}>
                 {text}
             </span>
         </div>

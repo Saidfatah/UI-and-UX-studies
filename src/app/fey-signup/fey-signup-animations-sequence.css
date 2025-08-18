@@ -1,0 +1,97 @@
+:root {
+    --badge-initial-translate-position: -100px;
+}
+
+
+/* transition happens here */
+.fey-badge-slide-from-top{
+    width: 100%;
+    transform: translateY(var(--badge-initial-translate-position));
+    animation: transitionAnimation 2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+
+@keyframes transitionAnimation {
+    0% {
+        transform: translateY(var(--badge-initial-translate-position));
+    }
+    100% {
+        transform: translateY(-40px);
+    }
+}
+
+
+.fey-badge-blur-out{
+    animation: 1.5s ease 1.2s 1 normal forwards running badgeFadeOutAnimation;
+}
+@keyframes badgeFadeOutAnimation {
+    0% {
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100% {
+        opacity: 0.5;
+        filter: blur(16px);
+    }
+}
+
+
+.reveal-with-slide-up-animation{
+    opacity: 0;
+    transform: translateY(10px);
+    animation: 2s cubic-bezier(0.22, 1, 0.36, 1) 0s 1 normal forwards running revealAnimation;
+}
+@keyframes revealAnimation {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+ 
+
+/* .fade-in-animation-with-subtle-scale{
+    opacity: 0;
+    transform: scale(0.9);
+    animation: 2s cubic-bezier(0.22, 1, 0.36, 1) 0s 1 normal forwards running fadeInScaleUp;
+}
+@keyframes fadeInScaleUp {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+  */
+
+/* this will finish as the upper elements finish their reveal , it will look smooth */
+/* we set delay to 1.8s which is a bit arbitrary 
+/* but its so that we see at least two elements from top then this start */
+/* if we wait till all the elements above finish their reveal then this will look jarring */
+/* plus the slow speed of 3s is to not make take the spot since we want the user to be more focused on teh form above */
+.terms-of-service{
+    animation: fadeInAnimation 3s ease 1.8s 1 normal forwards running ;
+}
+
+@keyframes fadeInAnimation {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+

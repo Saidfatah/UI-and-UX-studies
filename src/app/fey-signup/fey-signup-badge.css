@@ -1,0 +1,29 @@
+.root {
+    position: absolute;
+    right: 0px;
+    left: 0px;
+    margin: 0px auto;
+    display: grid;
+    place-content: center;
+    height: 100vh;
+    padding-top: 2vh;    
+}
+
+
+/* opacity fade happens here  */
+.fey-badge-layer-2{
+    width: 165px;
+    position: relative;
+    opacity: 1;
+    pointer-events: none;
+    user-select: none;
+    top: -200px;
+}
+
+
+
+.badge-image {
+    mask-image: url(/images/fey-lanyard-mask.png);
+    mask-size: 100%;
+}
+
