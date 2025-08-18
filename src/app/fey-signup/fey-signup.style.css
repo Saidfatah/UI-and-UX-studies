@@ -62,3 +62,23 @@
     margin: 0px auto;
 }
 
+
+.close-button {
+  color: rgb(134, 143, 151);
+    position: fixed;
+    display: grid;
+    place-content: center;
+    top: 32px;
+    left: 32px;
+    z-index: 99;
+    cursor: var(--pointer);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background 0.25s;
+}
+
+.close-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
