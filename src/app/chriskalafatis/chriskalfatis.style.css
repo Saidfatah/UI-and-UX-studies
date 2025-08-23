@@ -1,0 +1,144 @@
+@font-face {
+    font-family: 'PPTelegraf';
+    src: url('/fonts/PPTelegraf-Regular.otf');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'PPTelegraf';
+    src: url('/fonts/PPTelegraf-UltraBold.otf');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'PPTelegraf';
+    src: url('/fonts/PPTelegraf-UltraLight.otf');
+    font-weight: 200;
+    font-style: normal;
+}
+
+.header_navigation_item {
+    font-size: 14.5px;
+    border-radius: 5rem;
+    padding: 6px 8px;
+    position: relative;
+    display: flex;
+    line-height: 1.6rem;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'PPTelegraf';
+}
+
+
+.cta_hover {
+    width: 150%;
+    height: 150%;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    left: -25%;
+    top: -25%;
+    transform: translateY(101%);
+    transform-origin: top;
+}
+
+.header_navigation_link {
+    position: relative;
+    overflow: hidden;
+    line-height: 16px;
+    display: inline-block;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    cursor: none;
+}
+
+
+.header_navigation_link {
+     letter-spacing: .05em;
+     font-family: 'PPTelegraf';
+ 
+}
+.header_navigation_link .link_outer {
+    color: white;
+    font-weight:400;
+}
+
+.header_navigation_link .link_inner {
+    position: absolute;
+    left: 0;
+    transform: translateY(110%);
+    color: #000;
+    font-weight:400;
+    
+}
+
+.header_navigation_link span {
+    display: inline-block;
+}
+
+
+html {
+    cursor: none;
+}
+
+body {
+    cursor: none;
+}
+
+
+
+
+.cursor {
+    width: 1rem;
+    height: 1rem;
+    position: fixed;
+    top: -0.83rem;
+    left: -0.83rem;
+    pointer-events: none;
+    mix-blend-mode: difference;
+    z-index: 100000;
+}
+
+.cursor .cursor_top, .cursor .cursor_bottom , .cursor .cursor_left , .cursor .cursor_right {
+    position: absolute;
+    background-color: #fff;
+}
+
+.cursor_top, .cursor_bottom {
+    height: .5rem;
+    width: .2rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.cursor_top {
+    top: -5px;
+}
+
+.cursor_bottom {
+    bottom: -5px;
+}
+
+.cursor_left, .cursor_right {
+    width: .5rem;
+    height: .2rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.cursor_left {
+    left: -5px;
+}
+
+.cursor_right {
+    right: -5px;
+}
+
+
+    
