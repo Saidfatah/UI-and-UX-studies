@@ -175,7 +175,7 @@ body {
 
 .slide-to-down{
     transform: translateY(-50%);
-    animation: SlideToDown 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: SlideToDown 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 @keyframes SlideToDown{
@@ -190,7 +190,7 @@ body {
 
 
 .slide-to-left{
-        animation: SlideToLeft 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        animation: SlideToLeft 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 @keyframes SlideToLeft{
@@ -203,7 +203,7 @@ body {
 }
 
 .slide-to-right{
-    animation: SlideToRight 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: SlideToRight 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 @keyframes SlideToRight{
