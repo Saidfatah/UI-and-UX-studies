@@ -141,4 +141,76 @@ body {
 }
 
 
+
+.grid-center{
+    display: grid;
+    place-items:center;
+}
+
+.centered-grid-child{
+    grid-area:1/1;
+}
+
+.progress-circle{
+    animation: FillCircle 3s ease-in-out forwards;
+}
+
+@keyframes FillCircle{
+    0%{
+        stroke-dashoffset: var(--circumference);
+    }
+    100%{
+        stroke-dashoffset: 0;
+    }
+}
+
+.circle-text{
     
+    font-family: 'PPTelegraf';
+    font-weight: 200;
+    font-size: 12px;
+    letter-spacing: .02em;
+    color: white;
+}
+
+.slide-to-down{
+    transform: translateY(-50%);
+    animation: SlideToDown 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes SlideToDown{
+    0%{
+        transform: translateY(-50%);
+    }
+    100%{
+        transform: translateY(0);
+    }
+}
+
+
+
+.slide-to-left{
+        animation: SlideToLeft 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes SlideToLeft{
+    0%{
+        transform: translateX(0);
+    }
+    100%{
+        transform: translateX(-25%);
+    }
+}
+
+.slide-to-right{
+    animation: SlideToRight 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes SlideToRight{
+    0%{
+        transform: translateX(0);
+    }
+    100%{
+        transform: translateX(25%);
+    }
+}
