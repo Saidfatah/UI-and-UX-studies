@@ -1,28 +1,32 @@
 
 import { Image } from "./types";
-import { IMAGE_SIZE, imageEnterAnimationTransition, imageExitAnimationTransition, imageRotationAndScaleEnterAnimationTransition, imageRotationAndScaleExitAnimationTransition, TRANSITION_SELECTED_IMAGES_INTO_ORIGINAL_POSITION_DURATION } from "./constants";
+import { IMAGE_SIZE, imageEnterAnimationTransition, imageExitAnimationTransition, imageRotationAndScaleEnterAnimationTransition, imageRotationAndScaleExitAnimationTransition, TRANSITION_SELECTED_IMAGES_INTO_ORIGINAL_POSITION_DURATION, TRANSITION_SELECTED_IMAGES_INTO_POSITION_DURATION } from "./constants";
 import {
     IMAGES_OFFSET_FROM_TOP,
     ITEMS_PER_ROW,
 } from "./constants";
-import GalleryImage from "./GalleryImage";
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import GalleryImage, { GalleryImageHandle } from "./GalleryImage";
+import { forwardRef, memo, useCallback, useImperativeHandle, useRef } from "react";
+import clsx from "clsx";
 
 type Props = {
     index: number;
     isSelected: boolean;
     img: Image;
-    handleSelectImage: (id: string) => void;
+    handleSelectImage: () => void;
     handleLongPress: (id: string, position: { x: number; y: number }) => void;
+    onMouseDown: () => void;
 };
 
 export type GalleryImageWithDuplicateHandle = {
     moveImageToTapPosition: (targetPosition: { x: number; y: number }, scrollContainerScrollTop: number) => void
     moveImageToOriginalPosition: (scrollContainerScrollTop: number) => void
+    updateSelectStateBasedOnGalleryDrag: (indexAtDragStart: number, indexAtCurrentDragPosition: number, dragMode: "select" | "deselect") => { selected: boolean, id: string }
+    onGalleryDragEnd: () => void
 }
 
 const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Props>((props: Props, ref) => {
-    const { index, img, isSelected, handleSelectImage, handleLongPress } = props;
+    const { index, img, isSelected, handleSelectImage, handleLongPress, onMouseDown } = props;
 
     const duplicateImageWrappedDivRef = useRef<HTMLDivElement>(null);
     const duplicateImageRef = useRef<HTMLImageElement>(null);
@@ -49,7 +53,7 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
 
         // first show the image
         divWrapper.style.transition = "none";
-        divWrapper.style.zIndex = `${6 + (index + 1) * 3}`;
+        divWrapper.style.zIndex = `${13 + (index + 1) * 3}`;
         divWrapper.style.opacity = "1";
 
         divWrapper.style.transition = imageEnterAnimationTransition;
@@ -62,9 +66,15 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
         const oneOrMinusOne = Math.random() > 0.5 ? 1 : -1;
         image.style.transform = `
             perspective(400px)
-            rotate(${oneOrMinusOne * ((length - index) * 0.3 + Math.random() * 0.2)}deg)
+            rotate(${oneOrMinusOne * ((length - index) * 0.3 + Math.random() * 0.5)}deg)
             scale(${(index * 0.005) + 1})
         `;
+
+        setTimeout(() => {
+            divWrapper.style.transition = "none";
+            divWrapper.style.zIndex = `${13 + (index + 1) * 3}`;
+            divWrapper.style.opacity = "0";
+        }, TRANSITION_SELECTED_IMAGES_INTO_POSITION_DURATION);
     }, [])
 
     const moveImageToOriginalPosition = useCallback((scrollContainerScrollTop: number) => {
@@ -95,9 +105,17 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
 
     }, [])
 
+    const galleryImageHandleRef = useRef<GalleryImageHandle>(null);
+
     useImperativeHandle(ref, () => ({
         moveImageToTapPosition,
         moveImageToOriginalPosition,
+        updateSelectStateBasedOnGalleryDrag: (indexAtDragStart: number, indexAtCurrentDragPosition: number, dragMode: "select" | "deselect") => {
+            return galleryImageHandleRef.current?.updateSelectStateBasedOnGalleryDrag(indexAtDragStart, indexAtCurrentDragPosition, dragMode) ?? { selected: false, id: "" };
+        },
+        onGalleryDragEnd: () => {
+            galleryImageHandleRef.current?.onGalleryDragEnd();
+        }
     }))
 
     return (
@@ -105,7 +123,7 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
             <div
                 key={img.id + "duplicate"}
                 ref={duplicateImageWrappedDivRef}
-                className="preserve-3d absolute z-[12] opacity-0 pointer-events-none"
+                className=" preserve-3d absolute z-[12] opacity-0 pointer-events-none"
                 style={{
                     left: `${xBasedOnColIndex}px`,
                     top: `${yBasedOnRowIndex}px`,
@@ -118,7 +136,9 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
                     alt={alt}
                     ref={duplicateImageRef}
                     loading="lazy"
-                    className=" preserve-3d object-cover shadow-xl"
+                    className={clsx(
+                        "preserve-3d   object-cover shadow-xl"
+                    )}
                     style={{
                         width: `${IMAGE_SIZE}px`,
                         height: `${IMAGE_SIZE}px`,
@@ -127,11 +147,14 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
             </div>
 
             <GalleryImage
+                ref={galleryImageHandleRef}
                 key={img.id}
                 img={img}
+                index={index}
                 isSelected={isSelected}
+                onMouseDown={() => onMouseDown()}
                 handleSelectImage={handleSelectImage}
-                handleLongPress={() => {
+                handleLongPress={(id, pos) => {
                     const rowIndex = Math.floor(index / ITEMS_PER_ROW);
                     const colIndex = index % ITEMS_PER_ROW;
 
@@ -149,4 +172,4 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
 });
 
 
-export default GalleryImageWithDuplicate
+export default GalleryImageWithDuplicate;

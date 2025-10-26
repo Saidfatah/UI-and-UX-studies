@@ -1,4 +1,4 @@
-import { BOTTOM_SAFE_AREA_HEIGHT, IMAGE_AT_EDGE_OF_ROW_PADDING, IMAGE_SIZE, IPHONE_HEIGHT, IPHONE_WIDTH, TOP_SAFE_AREA_HEIGHT } from "./constants";
+import { BOTTOM_SAFE_AREA_HEIGHT, IMAGE_AT_EDGE_OF_ROW_PADDING, IMAGE_SIZE, IMAGES_OFFSET_FROM_TOP, IPHONE_HEIGHT, IPHONE_WIDTH, ITEMS_PER_ROW, TOP_SAFE_AREA_HEIGHT } from "./constants";
 
 export const calcAnticipationPosition = (
     imagePosition: { x: number; y: number },
@@ -70,4 +70,45 @@ export const calcSelectedImagesTargetPositionBasedOnWhereUserTapped=(targetPosit
         y
     }
     
+}
+
+
+export const getImageIndexBasedOnMousePosition=(e:React.MouseEvent,leftOffset:number,topOffset:number) :{
+    currentHoveredElementIndex: number;
+    currentHoveredElementColumnIndex: number;
+    currentHoveredElementRowIndex: number;
+}=>{
+    const mouseXCorrectedToIphonePosition = Math.round(e.clientX - leftOffset);
+    const mouseYCorrectedToIphonePosition = Math.round(e.clientY - topOffset -IMAGES_OFFSET_FROM_TOP);
+    
+    if (mouseXCorrectedToIphonePosition < 0 || mouseYCorrectedToIphonePosition < 0)  return {
+        currentHoveredElementIndex: 0,
+        currentHoveredElementColumnIndex: 0,
+        currentHoveredElementRowIndex: 0
+    };
+
+    const currentHoveredElementColumnIndex = Math.floor(mouseXCorrectedToIphonePosition / IMAGE_SIZE);
+    const currentHoveredElementRowIndex = Math.floor(mouseYCorrectedToIphonePosition / IMAGE_SIZE);
+
+    let currentHoveredElementIndex = 0
+
+    if (currentHoveredElementRowIndex === 0) {
+        currentHoveredElementIndex = currentHoveredElementColumnIndex
+    }
+
+    if (currentHoveredElementRowIndex > 0) {
+        currentHoveredElementIndex = currentHoveredElementColumnIndex  + currentHoveredElementRowIndex * ITEMS_PER_ROW
+    }
+
+    return {
+        currentHoveredElementIndex,
+        currentHoveredElementColumnIndex,
+        currentHoveredElementRowIndex
+    }
+}
+
+
+
+export const isValidDrag=(dx:number,dy:number)=>{
+    return dx > IMAGE_SIZE / 2 || dy > IMAGE_SIZE / 2;
 }

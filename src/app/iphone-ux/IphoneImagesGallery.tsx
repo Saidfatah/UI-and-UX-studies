@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     images,
     iphoneClass,
@@ -9,23 +9,20 @@ import {
 } from "./constants";
 
 import clsx from "clsx";
-import { calcSelectedImagesTargetPositionBasedOnWhereUserTapped } from "./math.calcs.utils";
+import { calcSelectedImagesTargetPositionBasedOnWhereUserTapped, getImageIndexBasedOnMousePosition, isValidDrag } from "./math.calcs.utils";
 import PopupMenuWrapper, { PopupMenuWrapperHandle } from "./ImageActionsPopupMenu";
 import SelectedImagesCountLabel, { SelectedImagesCountLableHandle } from "./SelectedImagesCountLable";
 import GalleryImageWithDuplicate, { GalleryImageWithDuplicateHandle } from "./GalleryImageWithDuplicate";
+import ImagesGalleryHeader from "./ImagesGalleryHeader";
 
-type ImageRef = Map<string, {
-    initialPosition: { x: number; y: number },
-    imageParentDiv: HTMLDivElement,
-    forwardedRef: GalleryImageWithDuplicateHandle
-}>
 
 type ImageWithForwardedRef = Map<string, {
     id: string,
     forwardedRef: GalleryImageWithDuplicateHandle
 }>
 
-function IphoneLayout() {
+function IphoneImagesGallery() {
+    const iphoneRef = useRef<HTMLDivElement>(null);
     const hasOpenedPopupMenuAfterLongPressOnSelectedImage = useRef(false);
     const popupMenuWrapperRef = useRef<PopupMenuWrapperHandle>(null);
     const selectedImagesCountLabelRef = useRef<SelectedImagesCountLableHandle>(null);
@@ -44,13 +41,16 @@ function IphoneLayout() {
         setSelectedImages(new Set()); // clear selections when toggling mode
     };
 
-    const handleSelectImage = useCallback((id: string) => {
+    const handleSelectImage = useCallback((id: string, skipToggle = false) => {
+        console.log("handleSelectImage", id, selectModeActive);
         if (hasOpenedPopupMenuAfterLongPressOnSelectedImage.current) return;
         if (!selectModeActive) return; // ignore if select mode is off
 
         setSelectedImages((prev) => {
             const newSet = new Set(prev);
-            if (newSet.has(id)) newSet.delete(id);
+            const shouldSelect = !newSet.has(id);
+
+            if (!shouldSelect && !skipToggle) newSet.delete(id);
             else newSet.add(id);
             return newSet;
         });
@@ -60,6 +60,12 @@ function IphoneLayout() {
     const getSelectedImagesRefs = () => {
         return Array.from(selectedImages)
             .map((id) => imagesForwardedRefs.current.get(id))
+            .filter((imageParentDiv): imageParentDiv is { id: string, forwardedRef: GalleryImageWithDuplicateHandle } => Boolean(imageParentDiv));
+    }
+
+    const getImagesRefsInRange = (start: number, end: number) => {
+        return images.filter((_, index) => index >= start && index <= end)
+            .map((img) => imagesForwardedRefs.current.get(img.id))
             .filter((imageParentDiv): imageParentDiv is { id: string, forwardedRef: GalleryImageWithDuplicateHandle } => Boolean(imageParentDiv));
     }
 
@@ -134,8 +140,127 @@ function IphoneLayout() {
     }, [backdropBlurRef, selectedImagesCountLabelRef, popupMenuRef, popupMenuWrapperRef, scrollContainerRef, selectedImages])
 
 
+    const [draggingIsValid, setDraggingIsValid] = useState(false);
+    const [mouseIsDown, setMouseIsDown] = useState(false);
+    const [dragMode, setDragMode] = useState<"select" | "deselect" | null>(null);
+    const [imageIndexAtMouseDownPosition, setImageIndexAtMouseDownPosition] = useState<{ id: string, index: number } | null>(null);
+
+
+    const handleMouseDownOnImage = useCallback(
+        (id: string, index: number) => {
+            if (!selectModeActive) return;
+
+            setMouseIsDown(true);
+
+            setImageIndexAtMouseDownPosition({
+                id,
+                index
+            });
+
+            setDragMode((prev) => {
+                const alreadySelected = selectedImages.has(id);
+                if (alreadySelected) {
+                    return "deselect";
+                } else {
+                    return "select";
+                }
+            });
+        },
+        [selectedImages, selectModeActive],
+    );
+
+    // keep track of selected images while dragging
+    // keep in mind we have two drag modes (select/deselect)
+    const selectedImagesWhileDragging = useRef(new Set<string>());
+    const wasDragging = useRef(false);
+    const lastMousePosition = useRef<{ x: number; y: number } | null>(null);
+
+    const onMouseMoveOnImages = useCallback(
+        (e: React.MouseEvent) => {
+            if (!selectModeActive) return;
+            if (!mouseIsDown) return;
+            if (dragMode == null) return;
+            if (!iphoneRef.current) return;
+            if (imageIndexAtMouseDownPosition === null) return;
+
+            const { clientX, clientY } = e;
+            const lastPos = lastMousePosition.current;
+
+            // initialize if not set
+            if (!lastPos) {
+                lastMousePosition.current = { x: clientX, y: clientY };
+                return;
+            }
+
+            const dx = Math.abs(clientX - lastPos.x);
+            const dy = Math.abs(clientY - lastPos.y);
+
+            // ignore tiny movement
+            if (!isValidDrag(dx, dy)) return;
+
+            setDraggingIsValid(true);
+
+            wasDragging.current = true;
+
+            lastMousePosition.current = { x: clientX, y: clientY };
+
+            const { left, top } = iphoneRef.current.getBoundingClientRect();
+            const { currentHoveredElementIndex } = getImageIndexBasedOnMousePosition(e, left, top);
+
+            const allImagesRefs = getImagesRefsInRange(0, images.length - 1);
+            allImagesRefs.forEach((imageRef) => {
+                if (!imageRef) return;
+                const { selected, id } = imageRef.forwardedRef.updateSelectStateBasedOnGalleryDrag(
+                    imageIndexAtMouseDownPosition.index,
+                    currentHoveredElementIndex,
+                    dragMode
+                );
+                if (selected) {
+                    selectedImagesWhileDragging.current.add(id);
+                } else {
+                    selectedImagesWhileDragging.current.delete(id);
+                }
+            });
+        },
+        [dragMode, mouseIsDown, imageIndexAtMouseDownPosition, selectModeActive]
+    );
+
+
+    const handleMouseUpFromImagesCollection = useCallback(() => {
+        setMouseIsDown(false);
+        lastMousePosition.current = null;
+
+        if (!wasDragging.current) return;
+        if (!selectModeActive) return;
+        if (dragMode == null) return;
+        if (!draggingIsValid) return;
+
+        setDragMode(null);
+        setDraggingIsValid(false);
+        setImageIndexAtMouseDownPosition(null);
+
+        const allImagesRefs = getImagesRefsInRange(
+            0,
+            images.length - 1
+        );
+
+        allImagesRefs.forEach((imageRef) => {
+            if (!imageRef) return;
+            imageRef.forwardedRef.onGalleryDragEnd();
+        });
+
+        // set selected images to the images that were selected while dragging
+        console.log("calling setSelectedImages on mouse up");
+        setSelectedImages(new Set(selectedImagesWhileDragging.current));
+
+    }, [selectModeActive, dragMode, wasDragging, draggingIsValid, selectedImagesWhileDragging]);
+
+
+    useEffect(() => {
+        console.log("selectedImages", selectedImages);
+    }, [selectedImages]);
     return (
-        <div className={clsx(iphoneClass, "relative !select-none rounded-[24px] overflow-hidden")}>
+        <div ref={iphoneRef} className={clsx(iphoneClass, "relative !select-none rounded-[24px] overflow-hidden")}>
             <PopupMenuWrapper ref={popupMenuWrapperRef} />
 
             <SelectedImagesCountLabel ref={selectedImagesCountLabelRef} selectedImagesCount={selectedImages.size} />
@@ -152,35 +277,18 @@ function IphoneLayout() {
             <div className="relative overflow-hidden h-full bg-black">
 
                 {/* header */}
-                <>
-                    {/* Header */}
-                    <div className="z-[6] w-full h-fit flex justify-between items-center p-[12px] absolute top-0 left-0">
-                        <div className="flex flex-col gap-[6px] text-white">
-                            <p className="font-bold text-[24px] tracking-[0.02em]">Library</p>
-                            <p className="text-[12px] tracking-[0.02em] font-semibold">21–24 Sep 2025</p>
-                        </div>
-
-                        <div>
-                            <button onClick={handleSelectModeToggle} className="relative px-[6px] rounded-[24px] py-[2px] text-white overflow-hidden bg-transparent backdrop-blur-xl">
-                                <div className="z-[0] bg-[#9492928b] absolute top-0 left-0 rounded-[24px] h-full w-full" />
-                                <p className="relative z-[3] tracking-[0.02em] text-[12px]">
-                                    {
-                                        selectModeActive ? "Cancel" : "Select"
-                                    }
-                                </p>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Backdrop blur layer */}
-                    <div className="z-[3] w-full h-[100px] gradientBackdropBlur absolute top-0 left-0 transition-none" />
-
-                    {/* Gradient overlay */}
-                    <div className="z-[3] w-full h-[100px] bg-gradient-to-b from-[#00000092] to-transparent absolute top-0 left-0" />
-                </>
+                <ImagesGalleryHeader
+                    selectModeActive={selectModeActive}
+                    handleSelectModeToggle={handleSelectModeToggle}
+                />
 
                 {/* Scrollable image grid */}
-                <div ref={scrollContainerRef} className="w-full  flex gap-[2px] flex-wrap h-full overflow-scroll">
+                <div
+                    ref={scrollContainerRef}
+                    onMouseUp={handleMouseUpFromImagesCollection}
+                    onMouseMove={onMouseMoveOnImages}
+                    onMouseLeave={handleMouseUpFromImagesCollection}
+                    className="w-full flex items-start gap-[2px] flex-wrap h-full overflow-scroll">
                     <div className="h-[100px] w-full" />
                     {images.map((img, index) => (
                         <GalleryImageWithDuplicate
@@ -189,8 +297,14 @@ function IphoneLayout() {
                             // @ts-ignore
                             ref={(ref) => imagesForwardedRefs.current.set(img.id, { id: img.id, forwardedRef: ref } as any)}
                             isSelected={selectedImages.has(img.id)}
-                            handleSelectImage={handleSelectImage}
-                            handleLongPress={executeTheLongPressAnimationSequence}
+                            handleSelectImage={() => handleSelectImage(img.id)}
+                            handleLongPress={(id, position) => {
+                                const isSelected = selectedImages.has(id);
+                                if (!isSelected) return;
+                                console.log("---------- handleLongPress --------");
+                                executeTheLongPressAnimationSequence(id, position)
+                            }}
+                            onMouseDown={() => handleMouseDownOnImage(img.id, index)}
                         />
 
                     ))}
@@ -200,4 +314,4 @@ function IphoneLayout() {
     );
 }
 
-export default IphoneLayout;
+export default IphoneImagesGallery;

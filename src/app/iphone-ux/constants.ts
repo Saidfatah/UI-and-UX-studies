@@ -1,6 +1,6 @@
 import { Image } from "./types";
 
-export const images: Image[] = Array.from({ length: 500 }, (_, i) => {
+export const images: Image[] = Array.from({ length: 200 }, (_, i) => {
     const id = 100 + i; // Use sequential IDs to ensure valid Picsum images
     return {
         id: id.toString(),
@@ -9,7 +9,7 @@ export const images: Image[] = Array.from({ length: 500 }, (_, i) => {
     };
 });
 
-export const ITEMS_PER_ROW = 5;
+
 
 // imagesOffsetFormTop is the height of the black area on top when you scroll teh way up 
 export const IMAGES_OFFSET_FROM_TOP=100
@@ -21,6 +21,7 @@ export const selectedImagesYPosition = 100
 export const IPHONE_HEIGHT = 800
 export const IPHONE_WIDTH = 480
 
+export const ITEMS_PER_ROW = 8;
 const iphoneWidthMinusGaps = IPHONE_WIDTH - (ITEMS_PER_ROW - 1) * 2;
 export const IMAGE_SIZE=  iphoneWidthMinusGaps/ITEMS_PER_ROW
 
