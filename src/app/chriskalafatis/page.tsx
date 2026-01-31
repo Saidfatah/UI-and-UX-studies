@@ -1,16 +1,18 @@
 'use client';
-import "./chriskalfatis.style.css"
+import "./styles/chriskalafatis.intro.css"
+import "./styles/chriskalfatis.style.css"
 import CircleComponent from "./Circle";
 import Cursor from "./Cursor";
 import RollingWord from "./RollingWord";
 import MagnetComponent from "./MagnetComponent";
-
+import IntroTransition from "./IntroTransition";
 
 
 function ChrisKalafatis() {
     return (<div className=" select-none w-screen h-screen bg-black flex flex-col items-start justify-center p-[32px]">
         <Cursor />
-
+        <IntroTransition />
+{/* 
         <div className="w-full flex items-center justify-center gap-[16px]">
             <RollingWord word="PROJECTS" />
             <RollingWord word="ABOUT" />
@@ -65,7 +67,7 @@ function ChrisKalafatis() {
                 </div>
             </div>
 
-        </div>
+        </div> */}
 
     </div>);
 }

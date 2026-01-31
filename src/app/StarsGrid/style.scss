@@ -1,0 +1,39 @@
+ .grid{
+  display: flex;
+  gap:0px;
+  flex-direction: column;
+ }
+ .row{
+  display: flex;
+  gap:0px;
+  align-items: center;
+ }
+
+.star {
+  user-select: none;
+  opacity: 0.2;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1rem !important;
+  font-size: 40px;
+
+  transition: 
+    opacity 0.8s cubic-bezier(0.76, 0, 0.24, 1), 
+    transform 1s cubic-bezier(0.45, 0, 0.55, 1);
+
+  color: hsl(var(--hue) 80% 50%);
+
+  transform:  translateX(0px) translateY(0px) scale(1) rotate(0deg);
+
+  &:hover {
+  transition-duration: 0s;
+  rotate: calc(3 * 90deg);
+  opacity: 1;
+  }
+}
+
+.starActive{
+  opacity: 1;
+  // transform: rotate(calc(var(--rotateMultiplier,3) * 90deg))  translateX(calc(var(--rotateMultiplier,3) * 1px)) translateY(calc(var(--rotateMultiplier,3) * 1px)) scale(var(--scaleMultiplier,1));
+  transform: rotate(calc(var(--rotateMultiplier,1) * 45deg))   translateX(var(--translateX))   translateY(var(--translateY))scale(var(--scaleMultiplier,1)) ;
+}

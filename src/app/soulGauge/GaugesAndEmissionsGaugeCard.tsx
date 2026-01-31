@@ -199,7 +199,7 @@ const GaugesAndEmissionsGaugeCard: FC<GaugesAndEmissionsGaugeCardProps> = ({ dat
                                 <div className='absolute  w-[6px] h-[1.7px] top-1/2 -translate-y-1/2 translate-x-[1.7px] left-0'>
                                     <div className='translate-y-[-0.3px]  bg-white rounded-[6px]  w-full h-full' />
                                 </div>
-                                <svg className={styles.gaugeArrow} width="4" height="6" viewBox="0 0 4 6" fill="none">
+                                <svg className={styles.gaugeArrow} width="4" height="6" viewBox="0 0 4 6" fill="none" style={{ transform: "translateX(5px)" }}>
                                     <path d="M3.553 0.27614L1.65692 5.40634L-2.36319e-07 0L1.81118 1.19906L3.553 0.27614Z" fill="white" />
                                 </svg>
                                 <div className={styles.bgBlur} />

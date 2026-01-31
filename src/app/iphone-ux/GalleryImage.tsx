@@ -1,8 +1,9 @@
 import { useLongPress } from "use-long-press";
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import { Image } from "./types";
-import { IMAGE_SIZE } from "./constants";
-
+import { useDynamicValuesStore } from "./useDynamicValuesStore";
+import { BASE_IMAGE_SIZE } from "./constants";
+import gsap from "gsap";
 
 type GalleryImageProps = {
   img: Image;
@@ -26,6 +27,7 @@ const GalleryImage = forwardRef<GalleryImageHandle, GalleryImageProps>(({
   handleLongPress,
   onMouseDown,
 }: GalleryImageProps, ref: React.Ref<GalleryImageHandle>) => {
+  const { IMAGE_SIZE } = useDynamicValuesStore();
   const elemRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLDivElement>(null);
   const imageWasSelectToggledWhileInDragMode = useRef(false);
@@ -120,6 +122,31 @@ const GalleryImage = forwardRef<GalleryImageHandle, GalleryImageProps>(({
     handleSelectImage();
   }, [handleSelectImage]);
 
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (!elemRef.current || !imgRef.current) return;
+
+    // Kill any ongoing animation before starting a new one (avoids buildup when resizing fast)
+    gsap.killTweensOf([elemRef.current, imgRef.current]);
+
+    // Animate the wrapper div
+    gsap.to(elemRef.current, {
+      width: IMAGE_SIZE,
+      height: IMAGE_SIZE,
+      duration: 0.35,
+      ease: "power2.out",
+    });
+
+    // Animate the img itself
+    gsap.to(imgRef.current, {
+      width: IMAGE_SIZE,
+      height: IMAGE_SIZE,
+      duration: 0.35,
+      ease: "power2.out",
+    });
+  }, [IMAGE_SIZE]);
+
   return (
     <div
       ref={elemRef}
@@ -129,8 +156,8 @@ const GalleryImage = forwardRef<GalleryImageHandle, GalleryImageProps>(({
       onDragStart={handleDragStart}
       draggable={false}
       style={{
-        width: IMAGE_SIZE,
-        height: IMAGE_SIZE,
+        width: BASE_IMAGE_SIZE,
+        height: BASE_IMAGE_SIZE,
       }}
       className="relative cursor-pointer select-none"
     >
@@ -138,13 +165,14 @@ const GalleryImage = forwardRef<GalleryImageHandle, GalleryImageProps>(({
         {img.id}
       </p> */}
       <img
+        ref={imgRef}
         src={img.url}
         alt={img.alt}
-        width={IMAGE_SIZE}
-        height={IMAGE_SIZE}
+        width={BASE_IMAGE_SIZE}
+        height={BASE_IMAGE_SIZE}
         style={{
-          width: IMAGE_SIZE,
-          height: IMAGE_SIZE,
+          width: BASE_IMAGE_SIZE,
+          height: BASE_IMAGE_SIZE,
         }}
         loading="lazy"
         draggable={false}

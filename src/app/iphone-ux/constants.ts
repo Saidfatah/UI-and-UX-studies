@@ -21,9 +21,9 @@ export const selectedImagesYPosition = 100
 export const IPHONE_HEIGHT = 800
 export const IPHONE_WIDTH = 480
 
-export const ITEMS_PER_ROW = 8;
-const iphoneWidthMinusGaps = IPHONE_WIDTH - (ITEMS_PER_ROW - 1) * 2;
-export const IMAGE_SIZE=  iphoneWidthMinusGaps/ITEMS_PER_ROW
+export const BASE_ITEMS_PER_ROW = 8;
+const iphoneWidthMinusGaps = IPHONE_WIDTH - (BASE_ITEMS_PER_ROW - 1) * 2;
+export const BASE_IMAGE_SIZE=  iphoneWidthMinusGaps/BASE_ITEMS_PER_ROW
 
 export const POPUP_MENU_WIDTH = 200
 export const POPUP_MENU_INITIAL_HEIGHT = 0

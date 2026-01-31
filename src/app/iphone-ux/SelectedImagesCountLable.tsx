@@ -1,5 +1,7 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
-import { IMAGE_SIZE, selectedImagesCountLabelEnterAnimationTransition, selectedImagesCountLabelExitAnimationTransition } from "./constants";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import { selectedImagesCountLabelEnterAnimationTransition, selectedImagesCountLabelExitAnimationTransition } from "./constants";
+import { useDynamicValuesStore } from "./useDynamicValuesStore";
+
 
 export type SelectedImagesCountLableHandle = {
     show: (x: number, y: number) => void;
@@ -12,7 +14,9 @@ type Props = {
 const SelectedImagesCountLabel = forwardRef<SelectedImagesCountLableHandle, Props>((props, ref) => {
     const selectedImagesCountLabelRef = useRef<HTMLDivElement>(null);
 
-    const show = (x: number, y: number) => {
+const { IMAGE_SIZE } = useDynamicValuesStore();
+
+    const show =useCallback( (x: number, y: number) => {
         if (selectedImagesCountLabelRef.current) {
             selectedImagesCountLabelRef.current.style.transition = "none";
             selectedImagesCountLabelRef.current.style.left = `${5 + x + IMAGE_SIZE - selectedImagesCountLabelRef.current.offsetWidth}px`;
@@ -27,15 +31,15 @@ const SelectedImagesCountLabel = forwardRef<SelectedImagesCountLableHandle, Prop
                 selectedImagesCountLabelRef.current.style.opacity = "1";
             }, 10);
         }
-    };
+    }, [IMAGE_SIZE]);
 
-    const hide = () => {
+    const hide = useCallback(() => {
         if (selectedImagesCountLabelRef.current) {
             selectedImagesCountLabelRef.current.style.transition = selectedImagesCountLabelExitAnimationTransition;
             selectedImagesCountLabelRef.current.style.transform = "scale(0)";
             selectedImagesCountLabelRef.current.style.opacity = "0";
         }
-    };
+    }, []);
 
     useImperativeHandle(ref, () => ({
         show,

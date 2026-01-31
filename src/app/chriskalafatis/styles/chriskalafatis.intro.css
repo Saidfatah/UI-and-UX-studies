@@ -1,0 +1,39 @@
+
+
+
+.intro{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+}
+
+.font_intro{
+    font-family: 'PPTelegraf';
+    line-height: 10.5rem;
+    font-size: 12rem;
+    letter-spacing: -0.5rem;
+    font-weight: 500;
+    color: #000;
+}
+
+
+.characters_wrapper{
+    grid-area: 1/1;
+    height: 9rem;
+    display: flex;
+    overflow: hidden;
+}
+
+
+.intro_word--v2{
+    transform: translateY(100%);
+}
+
+/* you only live once hahahahha */
+.yolo {
+    display: inline-block; /* cooked */
+    opacity: 0 !important;
+}

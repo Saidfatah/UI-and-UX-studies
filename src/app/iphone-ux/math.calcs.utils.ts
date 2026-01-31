@@ -1,4 +1,4 @@
-import { BOTTOM_SAFE_AREA_HEIGHT, IMAGE_AT_EDGE_OF_ROW_PADDING, IMAGE_SIZE, IMAGES_OFFSET_FROM_TOP, IPHONE_HEIGHT, IPHONE_WIDTH, ITEMS_PER_ROW, TOP_SAFE_AREA_HEIGHT } from "./constants";
+import { BOTTOM_SAFE_AREA_HEIGHT, IMAGE_AT_EDGE_OF_ROW_PADDING, IMAGES_OFFSET_FROM_TOP, IPHONE_HEIGHT, IPHONE_WIDTH,  TOP_SAFE_AREA_HEIGHT } from "./constants";
 
 export const calcAnticipationPosition = (
     imagePosition: { x: number; y: number },
@@ -14,7 +14,7 @@ export const calcAnticipationPosition = (
     };
 };
 
-export const calcSelectedImagesTargetPositionBasedOnWhereUserTapped=(targetPosition:{x:number,y:number},imagesContainerScrollTop:number)=>{
+export const calcSelectedImagesTargetPositionBasedOnWhereUserTapped=(targetPosition:{x:number,y:number},imagesContainerScrollTop:number,IMAGE_SIZE:number)=>{
     let x = targetPosition.x;
     let y = targetPosition.y
 
@@ -73,7 +73,7 @@ export const calcSelectedImagesTargetPositionBasedOnWhereUserTapped=(targetPosit
 }
 
 
-export const getImageIndexBasedOnMousePosition=(e:React.MouseEvent,leftOffset:number,topOffset:number) :{
+export const getImageIndexBasedOnMousePosition=(e:React.MouseEvent,leftOffset:number,topOffset:number,IMAGE_SIZE:number,ITEMS_PER_ROW:number) :{
     currentHoveredElementIndex: number;
     currentHoveredElementColumnIndex: number;
     currentHoveredElementRowIndex: number;
@@ -109,6 +109,6 @@ export const getImageIndexBasedOnMousePosition=(e:React.MouseEvent,leftOffset:nu
 
 
 
-export const isValidDrag=(dx:number,dy:number)=>{
-    return dx > IMAGE_SIZE / 2 || dy > IMAGE_SIZE / 2;
+export const isValidDrag=(dx:number,dy:number ,IMAGE_SIZE_DYNAMIC:number)=>{
+    return dx > IMAGE_SIZE_DYNAMIC / 2 || dy > IMAGE_SIZE_DYNAMIC / 2;
 }

@@ -1,13 +1,13 @@
 
 import { Image } from "./types";
-import { IMAGE_SIZE, imageEnterAnimationTransition, imageExitAnimationTransition, imageRotationAndScaleEnterAnimationTransition, imageRotationAndScaleExitAnimationTransition, TRANSITION_SELECTED_IMAGES_INTO_ORIGINAL_POSITION_DURATION, TRANSITION_SELECTED_IMAGES_INTO_POSITION_DURATION } from "./constants";
+import { imageEnterAnimationTransition, imageExitAnimationTransition, imageRotationAndScaleEnterAnimationTransition, imageRotationAndScaleExitAnimationTransition, TRANSITION_SELECTED_IMAGES_INTO_ORIGINAL_POSITION_DURATION } from "./constants";
 import {
     IMAGES_OFFSET_FROM_TOP,
-    ITEMS_PER_ROW,
 } from "./constants";
 import GalleryImage, { GalleryImageHandle } from "./GalleryImage";
-import { forwardRef, memo, useCallback, useImperativeHandle, useRef } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import clsx from "clsx";
+import { useDynamicValuesStore } from "./useDynamicValuesStore";
 
 type Props = {
     index: number;
@@ -27,6 +27,8 @@ export type GalleryImageWithDuplicateHandle = {
 
 const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Props>((props: Props, ref) => {
     const { index, img, isSelected, handleSelectImage, handleLongPress, onMouseDown } = props;
+
+    const { IMAGE_SIZE, ITEMS_PER_ROW } = useDynamicValuesStore();
 
     const duplicateImageWrappedDivRef = useRef<HTMLDivElement>(null);
     const duplicateImageRef = useRef<HTMLImageElement>(null);
@@ -53,7 +55,7 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
 
         // first show the image
         divWrapper.style.transition = "none";
-        divWrapper.style.zIndex = `${13 + (index + 1) * 3}`;
+        divWrapper.style.zIndex = `${17 + (index + 1) * 3}`;
         divWrapper.style.opacity = "1";
 
         divWrapper.style.transition = imageEnterAnimationTransition;
@@ -70,11 +72,11 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
             scale(${(index * 0.005) + 1})
         `;
 
-        setTimeout(() => {
-            divWrapper.style.transition = "none";
-            divWrapper.style.zIndex = `${13 + (index + 1) * 3}`;
-            divWrapper.style.opacity = "0";
-        }, TRANSITION_SELECTED_IMAGES_INTO_POSITION_DURATION);
+        // setTimeout(() => {
+        //     divWrapper.style.transition = "none";
+        //     divWrapper.style.zIndex = `${13 + (index + 1) * 3}`;
+        //     divWrapper.style.opacity = "0";
+        // }, TRANSITION_SELECTED_IMAGES_INTO_POSITION_DURATION);
     }, [])
 
     const moveImageToOriginalPosition = useCallback((scrollContainerScrollTop: number) => {
@@ -146,27 +148,37 @@ const GalleryImageWithDuplicate = forwardRef<GalleryImageWithDuplicateHandle, Pr
                 />
             </div>
 
-            <GalleryImage
-                ref={galleryImageHandleRef}
-                key={img.id}
-                img={img}
-                index={index}
-                isSelected={isSelected}
-                onMouseDown={() => onMouseDown()}
-                handleSelectImage={handleSelectImage}
-                handleLongPress={(id, pos) => {
-                    const rowIndex = Math.floor(index / ITEMS_PER_ROW);
-                    const colIndex = index % ITEMS_PER_ROW;
-
-                    const xGap = colIndex * 2;
-                    const yGap = (rowIndex + 1) * 2;
-
-                    const xBasedOnColIndex = colIndex * IMAGE_SIZE + xGap;
-                    const yBasedOnRowIndex = rowIndex * IMAGE_SIZE + yGap;
-
-                    handleLongPress(img.id, { x: xBasedOnColIndex, y: yBasedOnRowIndex + IMAGES_OFFSET_FROM_TOP })
+            <div
+                className="absolute z-[16] "
+                style={{
+                    left: `${xBasedOnColIndex}px`,
+                    top: `${yBasedOnRowIndex}px`,
+                    width: `${IMAGE_SIZE}px`,
+                    height: `${IMAGE_SIZE}px`,
                 }}
-            />
+            >
+                <GalleryImage
+                    ref={galleryImageHandleRef}
+                    key={img.id}
+                    img={img}
+                    index={index}
+                    isSelected={isSelected}
+                    onMouseDown={() => onMouseDown()}
+                    handleSelectImage={handleSelectImage}
+                    handleLongPress={(id, pos) => {
+                        const rowIndex = Math.floor(index / ITEMS_PER_ROW);
+                        const colIndex = index % ITEMS_PER_ROW;
+
+                        const xGap = colIndex * 2;
+                        const yGap = (rowIndex + 1) * 2;
+
+                        const xBasedOnColIndex = colIndex * IMAGE_SIZE + xGap;
+                        const yBasedOnRowIndex = rowIndex * IMAGE_SIZE + yGap;
+
+                        handleLongPress(img.id, { x: xBasedOnColIndex, y: yBasedOnRowIndex + IMAGES_OFFSET_FROM_TOP })
+                    }}
+                />
+            </div>
         </>
     );
 });

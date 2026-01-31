@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { actionsPopupMenuEnterAnimationTransition, actionsPopupMenuExitAnimationTransition, GAP_BETWEEN_POPUP_MENU_AND_SELECTED_IMAGES_GROUP, IMAGE_SIZE, IPHONE_HEIGHT, IPHONE_WIDTH, POPUP_MENU_INITIAL_HEIGHT, popupMenuSizeClasses } from "./constants";
+import { actionsPopupMenuEnterAnimationTransition, actionsPopupMenuExitAnimationTransition, GAP_BETWEEN_POPUP_MENU_AND_SELECTED_IMAGES_GROUP, IPHONE_HEIGHT, IPHONE_WIDTH, POPUP_MENU_INITIAL_HEIGHT, popupMenuSizeClasses } from "./constants";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import React from "react";
+import { useDynamicValuesStore } from "./useDynamicValuesStore";
 
 const ActionItem = ({
     title,
@@ -18,6 +19,7 @@ const ActionItem = ({
         </svg>
     </div>
 )
+
 const DeleteItem = () => (
     <div className="w-full flex items-center justify-between p-[8px]">
         <p className="text-red-500 text-[12px]" >
@@ -203,6 +205,8 @@ const PopupMenuWrapper = forwardRef<PopupMenuWrapperHandle>((_, ref) => {
     const popupMenuRef = useRef<HTMLDivElement>(null);
     const actionsPopupRef = useRef<ImageActionsPopupMenuHandle>(null);
 
+    const { IMAGE_SIZE } = useDynamicValuesStore();
+
     const hide = useCallback(() => {
         actionsPopupRef.current?.hide()
 
@@ -250,7 +254,7 @@ const PopupMenuWrapper = forwardRef<PopupMenuWrapperHandle>((_, ref) => {
             popupMenuRef.current.style.left = `${x}px`;
             actionsPopupRef.current?.show({ vertical: "bottom", horizontal: "left" })
         }
-    }, [popupMenuRef, actionsPopupRef])
+    }, [popupMenuRef, actionsPopupRef, IMAGE_SIZE])
 
     useImperativeHandle(ref, () => ({
         show,
