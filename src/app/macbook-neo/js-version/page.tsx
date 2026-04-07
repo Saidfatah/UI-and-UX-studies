@@ -103,24 +103,88 @@ const slides = [
 
 
 
+//Todo: convert pictureWidth and pictureHeight to --p-width and --p-height
 function MacbookNeo() {
-    return (<div className='w-screen h-screen flex items-center gallery-page-wrapper'>
+    const slidesOffsets = React.useRef<number[]>([]);
+    const slideEls = React.useRef<HTMLLIElement[]>([]);
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    const galleryScrollRef = React.useRef<HTMLDivElement>(null);
+    const scrollEndTimer = React.useRef<number | null>(null);
+
+    React.useLayoutEffect(() => {
+        const scrollContainer = galleryScrollRef.current;
+        if (!scrollContainer) return;
+
+        const containerWidth = scrollContainer.clientWidth;
+        const maxScroll = scrollContainer.scrollWidth - containerWidth;
+        const snapPositions: number[] = [];
+
+        slideEls.current.forEach((el) => {
+            if (!el) return;
+            
+            // The scrollLeft value when this slide is centered (scroll-snap-align: center)
+            const snapPos = el.offsetLeft + el.offsetWidth / 2 - containerWidth / 2;
+
+            
+            // make sure min is 0, max is maxScroll
+            const clip = Math.max(0, Math.min(snapPos, maxScroll))
+
+            snapPositions.push(clip);
+        });
+
+        console.log(snapPositions)
+        slidesOffsets.current = snapPositions;
+    }, [slides]);
+
+    return (<div ref={scrollContainerRef} className='w-screen h-screen flex items-center'>
 
 
         <div className='w-full media-gallery-wrapper'>
             <div
+                onScroll={(e) => {
+                    const offsets = slidesOffsets.current;
+                    if (!offsets || offsets.length < 2) return;
+
+                    const scrollLeft = (e.target as HTMLDivElement).scrollLeft;
+
+                    // Piecewise linear interpolation between snap positions
+                    let progress = 0;
+                    if (scrollLeft <= offsets[0]) {
+                        progress = 0;
+                    } else if (scrollLeft >= offsets[offsets.length - 1]) {
+                        progress = offsets.length - 1;
+                    } else {
+                        for (let i = 0; i < offsets.length - 1; i++) {
+                            if (scrollLeft <= offsets[i + 1]) {
+                                progress = i + (scrollLeft - offsets[i]) / (offsets[i + 1] - offsets[i]);
+                                break;
+                            }
+                        }
+                    }
+
+                    progress = parseFloat(progress.toFixed(3));
+
+                    // Raw float while scrolling
+                    scrollContainerRef.current?.style.setProperty('--auto-play-progress', progress.toString());
+                    
+                    // Snap to nearest integer once scrolling stops
+                    if (scrollEndTimer.current) clearTimeout(scrollEndTimer.current);
+                    scrollEndTimer.current = window.setTimeout(() => {
+                        const snapped = Math.round(progress);
+                        scrollContainerRef.current?.style.setProperty('--auto-play-progress', snapped.toString());
+                    }, 50);
+                }}
+                ref={galleryScrollRef}
                 className='w-full scroll-container media-gallery' >
                 <ul className='media-card-set'>
                     {slides.map((slide, index) => (
                         <li
+                            ref={(el) => {
+                                if (el) slideEls.current[index] = el;
+                            }}
                             className='gallery-item'
                             key={slide.id}
                             id={`media-card-gallery-item-${index + 1}`}
-                                style={{
-                                        
-                                        '--slide-index': index,
-
-                                    } as React.CSSProperties}
                         >
                             <div className='card'>
                                 <div className='media-container'
@@ -154,8 +218,10 @@ function MacbookNeo() {
                         tabIndex={index === 0 ? 0 : -1}
                         onClick={(e) => {
                             e.preventDefault();
-                            const target = document.getElementById(`media-card-gallery-item-${index + 1}`);
-                            target?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                            galleryScrollRef.current?.scrollTo({
+                                left: slidesOffsets.current[index],
+                                behavior: 'smooth'
+                            });
                         }}
                     >
                         <span className='visually-hidden'>{slide.title}</span>

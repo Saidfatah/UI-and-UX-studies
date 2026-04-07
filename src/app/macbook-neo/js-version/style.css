@@ -18,19 +18,6 @@
 }
 
 
-/* Register --auto-play-progress so CSS can interpolate it as a number */
-@property --auto-play-progress {
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 0;
-}
-
-/* Scroll-driven animation: maps 0%-100% scroll to progress 0-4 (5 slides) */
-@keyframes gallery-scroll-progress {
-    from { --auto-play-progress: 0; }
-    to   { --auto-play-progress: 4; }
-}
-
 
 * {
     --navigation-container-bg: #e8e8ede4;
@@ -54,12 +41,6 @@
 
 /* Gallery : scroll handling -------------------------------------------------- */
 
-/* Hoist the named scroll timeline so sibling .dot-nav-container can read it */
-.gallery-page-wrapper {
-    timeline-scope: --gallery-scroll;
-    animation: gallery-scroll-progress linear both;
-    animation-timeline: --gallery-scroll;
-}
 
 .media-gallery-wrapper {
     width: 100%;
@@ -81,9 +62,6 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     width: 100%;
-
-    /* Name this element's horizontal scroll as a timeline */
-    scroll-timeline: --gallery-scroll inline;
 }
  
 .media-card-set {
@@ -113,12 +91,6 @@
     min-height: var(--shared-media-gallery-height);
     scroll-snap-align: center;
     list-style-type: none;
-
-        /* because slide-index is ways gonna be the same float or in same range as autoplayprogress */
-    --slide-progress: calc(var(--slide-index) - var(--auto-play-progress) );
-
-    /* make sure the value is always positive */
-    --abs-slide-progress: max(var(--slide-progress), -1 * var(--slide-progress));
 }
 
 
@@ -158,8 +130,6 @@
     align-items: center;
     align-content: center;
     justify-content: center;
-
-
 }
 
 
