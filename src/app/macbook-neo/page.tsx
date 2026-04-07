@@ -47,7 +47,7 @@ const slides = [
         title: "13-inch Liquid Retina display.2 Exceptionally vibrant and bright. One billion colors. Open up and say wow.",
         imageUrl: "/images/macbook-neo/highlights_display_endframe__c0qk6ggqxdw2_large_2x.jpg",
         captionWidth: [
-            "555px", // desktop
+            "486px", // desktop
             "320px" // mobile
         ],
         sizes: [

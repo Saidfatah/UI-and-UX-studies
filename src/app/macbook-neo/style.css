@@ -138,10 +138,16 @@
 
     /* make sure the value is always positive */
     --abs-slide-progress: max(var(--slide-progress), -1 * var(--slide-progress));
-    
+
     /* fade based on scroll progress: visible when active, hidden otherwise */
     --caption-expand-amount: min((1 - var(--abs-slide-progress)), 1);
     opacity: var(--caption-expand-amount);
+
+    /* slide-progress is signed: negative = scrolled past, positive = upcoming */
+    /* multiply by -25px so leaving slide drifts right, entering slide comes from left */
+    transform: translateX(calc(var(--slide-progress) * 100px));
+
+    transition: opacity 0.1s ease-in-out;
 }
 
 .caption-animation-container{
