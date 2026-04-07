@@ -34,6 +34,7 @@
 
 * {
     --navigation-container-bg: #e8e8ede4;
+    --navigation-container-bg-hover:#E0E0E0;
     --navigation-dot-bg: #717075;
 
     --sk-dotnav-size:10px;
@@ -41,8 +42,8 @@
     --progress-bar-active-width:48px;
 
 
-    --shared-media-gallery-height: 628px;
-    --shared-media-gallery-width: min( max(87.5vw - 0px, 280px), 1260px);
+    --shared-media-gallery-height: 75vh;
+    --shared-media-gallery-width: min( max(87.5vw - 0px, 280px), 1000px);
 
     --font-sf-pro: 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     /* font-family: 'SF Pro medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; */
@@ -108,6 +109,7 @@
 
 /* gallery Card  -------------------------------------------------- */
 .gallery-item {
+    cursor: pointer;
     display: flex;
     width: var(--shared-media-gallery-width);
     min-height: var(--shared-media-gallery-height);
@@ -122,7 +124,7 @@
     display: grid;
     grid-template-areas: "stack";
     overflow: clip;
-    border-radius: 28px;
+    
     width: var(--shared-media-gallery-width);
 }
 
@@ -178,59 +180,84 @@
 .media-container  img {
     display: block;
     position: relative;
-height: var(--shared-media-gallery-height);
+    height: var(--shared-media-gallery-height);
+    width: auto;
     overflow-clip-margin:content-box;
     overflow: clip;
+    background-size: cover;
+    border-radius: 28px;
 }
 
-@media (max-width: 1068px) {
-    .media-container img {
-        width: var(--p-width-desktop, 100%);
-        height: var(--p-height-desktop, 100%);
-    }
-    .caption-animation-container{
-        width: var(--caption-width-desktop, 100%);
-        max-width: var(--caption-width-desktop, 100%);
-    }
-}
-
-@media (max-width: 734px) {
-    .media-container img {
-        width: var(--p-width-mobile, 100%);
-        height: var(--p-height-mobile, 100%);
-    }
-    .caption-animation-container{
-        width: var(--caption-width-mobile, 100%);
-        max-width: var(--caption-width-mobile, 100%);
-    }
-}
 
 
 
 
 /* Navigation : -------------------------------------------------- */
 
-.dot-nav-container {
-    list-style: none;
-
+.nav-controls {
     position: absolute;
     top: 32px;
     left: 50%;
     transform: translateX(-50%);
 
-    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dot-nav-container {
+    list-style: none;
+
+    border-radius: 28px;
     /* background: rgba(150, 206,  calc(var(--auto-play-progress) * 100), 0.6); */
     background: var(--navigation-container-bg);
     backdrop-filter: blur(24px);
-    
+
     height: 56px;
 
     display: flex;
     gap: 20px;
     align-items: center;
-    
-    padding-left: 16px;
-    padding-right: 16px;
+
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* Player button -------------------------------------------------- */
+
+.player-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: var(--navigation-container-bg);
+    backdrop-filter: blur(24px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d1d1f;
+}
+.player-btn:hover {
+    background: var(--navigation-container-bg-hover);
+}
+
+.player-icon-stack {
+    display: grid;
+    grid-template-areas: "stack";
+    align-items: center;
+    justify-items: center;
+}
+
+.player-icon {
+    grid-area: stack;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.player-icon[data-visible="true"] {
+    opacity: 1;
 }
 
 .dot-nav-item{
@@ -249,6 +276,8 @@ height: var(--shared-media-gallery-height);
     text-decoration: none;
     display: block;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 
     /* --item-index cascades from parent li.dot-nav-item */
 
@@ -282,6 +311,36 @@ height: var(--shared-media-gallery-height);
 
     background: var(--navigation-dot-bg);
     border-radius: 8px;
+}
+
+/* Autoplay progress fill ::after */
+.dot-nav-link::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    min-width: 15%;
+    margin-inline-start: -15%;
+    background: black;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.dot-nav-link[data-active="true"]::after {
+    animation: autoplay-fill calc(var(--autoplay-duration, 6000) * 1ms) linear forwards;
+}
+
+@keyframes autoplay-fill {
+    from { width: 15%; }
+    to   { width: 115%; }
+}
+
+/* Freeze the progress bar when paused */
+[data-player-state="paused"] .dot-nav-link[data-active="true"]::after {
+    animation-play-state: paused;
+     width: 15%;
 }
 
 .dot-nav-link:focus-visible {
