@@ -114,11 +114,7 @@
     scroll-snap-align: center;
     list-style-type: none;
 
-        /* because slide-index is ways gonna be the same float or in same range as autoplayprogress */
-    --slide-progress: calc(var(--slide-index) - var(--auto-play-progress) );
-
-    /* make sure the value is always positive */
-    --abs-slide-progress: max(var(--slide-progress), -1 * var(--slide-progress));
+        
 }
 
 
@@ -136,6 +132,16 @@
     grid-area: stack;
     width: 100%;
     z-index: 1;
+
+    /* because slide-index is ways gonna be the same float or in same range as autoplayprogress */
+    --slide-progress: calc(var(--slide-index) - var(--auto-play-progress) );
+
+    /* make sure the value is always positive */
+    --abs-slide-progress: max(var(--slide-progress), -1 * var(--slide-progress));
+    
+    /* fade based on scroll progress: visible when active, hidden otherwise */
+    --caption-expand-amount: min((1 - var(--abs-slide-progress)), 1);
+    opacity: var(--caption-expand-amount);
 }
 
 .caption-animation-container{

@@ -117,12 +117,22 @@ function MacbookNeo() {
                             key={slide.id}
                             id={`media-card-gallery-item-${index + 1}`}
                                 style={{
-                                        
+
                                         '--slide-index': index,
 
                                     } as React.CSSProperties}
                         >
                             <div className='card'>
+                                <div className='caption-container'>
+                                    <div className='caption-animation-container'
+                                        style={{
+                                            '--caption-width-desktop': slide.captionWidth[0],
+                                            '--caption-width-mobile': slide.captionWidth[1],
+                                        } as React.CSSProperties}
+                                    >
+                                        <p className='typography-media-card-gallery-headline'>{slide.title}</p>
+                                    </div>
+                                </div>
                                 <div className='media-container'
                                     style={{
                                         '--p-width-desktop': slide.sizes[0].width,
