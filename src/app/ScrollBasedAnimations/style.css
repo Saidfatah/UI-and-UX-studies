@@ -1,0 +1,90 @@
+main {
+  scroll-timeline: --main-timeline;
+}
+
+div {
+  animation: background-animation linear;
+  animation-timeline: scroll(nearest inline);
+}
+
+div::after {
+  animation: shape-animation linear;
+  animation-timeline: --main-timeline;
+}
+
+
+@layer page-setup {
+  :root {
+    --elSize: 50px;
+  }
+  main {
+    height: 100vh;
+    overflow: scroll;
+    border: 1px solid;
+  }
+  div {
+    height: 400vh;
+    width: 400vw;
+    background: blue;
+  }
+  div::after {
+    content: "";
+    border: 1px solid red;
+    background-color: black;
+    height: var(--elSize);
+    width: var(--elSize);
+    position: absolute;
+    border-radius: 20px;
+    /* transform: translateX(50px); */
+    corner-shape: superellipse(3);
+  }
+}
+
+@layer no-support {
+  @supports not (scroll-timeline: --main-timeline) {
+    body::before {
+      content: "Your browser doesn't support scroll-driven animations.";
+      background-color: wheat;
+      display: block;
+      text-align: center;
+    }
+  }
+}
+
+
+
+@layer animations {
+  @keyframes background-animation {
+    0% {
+      background-color: palegoldenrod;
+    }
+    100% {
+      background-color: magenta;
+    }
+  }
+  @keyframes shape-animation {
+    0% {
+      left: 0;
+      top: 0;
+      rotate: 0deg;
+    }
+    25% {
+      top: calc(100% - var(--elSize));
+      left: calc(50% - var(--elSize));
+    }
+    50% {
+      top: calc(50% - var(--elSize));
+      left: calc(100% - var(--elSize));
+    }
+    75% {
+      left: calc(50% - var(--elSize));
+      top: 0;
+      
+    }
+    100% {
+      left: 0;
+      top: 0;
+      rotate: 1800deg;
+    }
+  }
+}

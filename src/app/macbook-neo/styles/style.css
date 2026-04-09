@@ -1,0 +1,165 @@
+@font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/sf-pro-display/SFPRODISPLAYBOLD.OTF');
+    font-weight: 700;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'SF Pro medium';
+    src: url('/fonts/sf-pro-display/SFPRODISPLAYMEDIUM.OTF');
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/sf-pro-display/SFPRODISPLAYREGULAR.OTF');
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+* {
+    --navigation-container-bg: rgba(232, 232, 237, 0.9);
+    --navigation-container-bg-hover:#E0E0E0;
+    --navigation-dot-bg: #717075;
+
+    --sk-dotnav-size:10px;
+    --progress-intro: 0;
+    --progress-bar-active-width:48px;
+
+
+    --shared-media-gallery-height: 75vh;
+    --shared-media-gallery-width: min( max(87.5vw - 0px, 280px), 1000px);
+
+    --font-sf-pro: 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* font-family: 'SF Pro medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; */
+    font-family: 'SF Pro medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+
+
+
+/* Gallery : scroll handling -------------------------------------------------- */
+.media-gallery-wrapper {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.media-gallery {
+    /* --transition-ease-factor: 3;
+    --transition-multiplier-caption: -0.45;
+    --transition-multiplier-media: 0.45; */
+    width: 100%;
+    height: var(--shared-media-gallery-height);
+}
+
+.scroll-container {
+    position: relative;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    width: 100%;
+
+}
+ 
+.media-card-set {
+    margin: 0 auto;
+    display: grid;
+    grid-gap: 20px;
+    grid-auto-flow: column;
+    width: -moz-fit-content;
+    width: fit-content;
+    padding: 0 100px; /* todo handle max min calc for consitency across devices */
+    list-style-type: none;
+}
+
+.media-card-set .gallery-item {
+    display: flex;
+    width: var(--shared-media-gallery-width);
+    min-height: var(--shared-media-gallery-height);
+    list-style-type: none;
+}
+
+
+
+/* gallery Card  -------------------------------------------------- */
+.gallery-item {
+    cursor: pointer;
+    display: flex;
+    width: var(--shared-media-gallery-width);
+    min-height: var(--shared-media-gallery-height);
+    scroll-snap-align: center;
+    list-style-type: none;
+
+        
+}
+
+
+.card{
+    display: grid;
+    grid-template-areas: "stack";
+    overflow: clip;
+    
+    width: var(--shared-media-gallery-width);
+}
+
+
+.caption-container{
+    text-align: center;
+    grid-area: stack;
+    width: 100%;
+    z-index: 1;
+
+    /* because slide-index is ways gonna be the same float or in same range as autoplayprogress */
+    --slide-progress: calc(var(--slide-index) - var(--auto-play-progress) );
+
+    /* make sure the value is always positive */
+    --abs-slide-progress: max(var(--slide-progress), -1 * var(--slide-progress));
+
+    /* fade based on scroll progress: visible when active, hidden otherwise */
+    --caption-expand-amount: min((1 - var(--abs-slide-progress)), 1);
+    opacity: var(--caption-expand-amount);
+
+    /* slide-progress is signed: negative = scrolled past, positive = upcoming */
+    /* multiply by -25px so leaving slide drifts right, entering slide comes from left */
+    transform: translateX(calc(var(--slide-progress) * 100px));
+
+    transition: opacity 0.1s ease-in-out;
+}
+
+.caption-animation-container{
+    margin: 44px;
+}
+
+.typography-media-card-gallery-headline {
+    font-size: 24px;
+    line-height: 1.1666666667;
+    letter-spacing: .009em;
+    color: rgba(0, 0, 0, 0.88);
+    /* font-family: var(--font-sf-pro-medium); */
+}
+
+
+.media-container{
+    grid-area: stack;
+    width: var(--shared-media-gallery-width);
+    height: var(--shared-media-gallery-height);
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+
+
+}
+
+
+.media-container  img {
+    display: block;
+    position: relative;
+    height: var(--shared-media-gallery-height);
+    width: auto;
+    overflow-clip-margin:content-box;
+    overflow: clip;
+    background-size: cover;
+    border-radius: 28px;
+}

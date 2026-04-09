@@ -1,0 +1,31 @@
+/* this extracted to this file just for easier testing  */
+/* and to make styles.css used on both js version and css version  */
+
+
+/* Register --auto-play-progress so CSS can interpolate it as a number */
+@property --auto-play-progress {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+}
+
+/* Scroll-driven animation: maps 0%-100% scroll to progress 0-4 (5 slides) */
+@keyframes gallery-scroll-progress {
+    from { --auto-play-progress: 0; }
+    to   { --auto-play-progress: 4; }
+}
+
+/* Hoist the named scroll timeline so sibling .dot-nav-container can read it */
+.gallery-page-wrapper {
+    timeline-scope: --gallery-scroll;
+    animation: gallery-scroll-progress linear both;
+    animation-timeline: --gallery-scroll;
+}
+
+
+.scroll-container {
+    /* .. check style.css for rest of styles */
+    /* Name this element's horizontal scroll as a timeline */
+    scroll-timeline: --gallery-scroll inline;
+}
+ 

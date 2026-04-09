@@ -1,51 +1,23 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
-import '../styles/style.css'
-import '../styles/navigation.style.css'
 import SlidesNavigation from '../components/SlidesNavigation';
 import { AUTOPLAY_MS, slides } from '../constants';
-import { animated, useSpring } from '@react-spring/web'
+import '../styles/style.css'
+import '../styles/scroll.based.animation.css'
+import '../styles/navigation.style.css'
+import { animated, useSprings } from '@react-spring/web'
 
 const revealConfig = {
-    mass: 1,
-    damping: 500,
-    tension: 100,
+    mass: 5,
+    damping: 20,
+    tension: 200,
 }
 
+
 function MacbookNeo() {
-    const slidesOffsets = React.useRef<number[]>([]);
-    const slideEls = React.useRef<HTMLLIElement[]>([]);
-    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-    const galleryScrollRef = React.useRef<HTMLDivElement>(null);
-    const scrollEndTimer = React.useRef<number | null>(null);
-
-    React.useLayoutEffect(() => {
-        const scrollContainer = galleryScrollRef.current;
-        if (!scrollContainer) return;
-
-        const containerWidth = scrollContainer.clientWidth;
-        const maxScroll = scrollContainer.scrollWidth - containerWidth;
-        const snapPositions: number[] = [];
-
-        slideEls.current.forEach((el) => {
-            if (!el) return;
-
-            // The scrollLeft value when this slide is centered (scroll-snap-align: center)
-            const snapPos = el.offsetLeft + el.offsetWidth / 2 - containerWidth / 2;
-
-
-            // make sure min is 0, max is maxScroll
-            const clip = Math.max(0, Math.min(snapPos, maxScroll))
-
-            snapPositions.push(clip);
-        });
-
-        console.log(snapPositions)
-        slidesOffsets.current = snapPositions;
-    }, [slides]);
-
     const [activeIndex, setActiveIndex] = React.useState(0);
     const [playerState, setPlayerState] = React.useState<'playing' | 'paused' | 'ended'>('playing');
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
     const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
     const activeRef = React.useRef(0);
 
@@ -101,8 +73,8 @@ function MacbookNeo() {
     }, [goToSlide, playerState, resetTimer]);
 
     React.useEffect(() => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.style.setProperty('--autoplay-duration', String(AUTOPLAY_MS));
+        if (wrapperRef.current) {
+            wrapperRef.current.style.setProperty('--autoplay-duration', String(AUTOPLAY_MS));
         }
         resetTimer();
         return () => {
@@ -119,9 +91,9 @@ function MacbookNeo() {
 
         let swipeCooldown = false;
         const handleWheel = (e: WheelEvent) => {
-            if (Math.abs(e.deltaX) < 10 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+            // if (Math.abs(e.deltaX) < 10 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
 
-            e.preventDefault();
+            // e.preventDefault();
 
             if (swipeCooldown) return;
             swipeCooldown = true;
@@ -149,24 +121,41 @@ function MacbookNeo() {
         };
     }, [goToSlide]);
 
-    const [revealSlides, revealSlidesAPI] = useSpring(() => ({
-        from: {
-            opacity: 0,
-        },
-    }))
 
     const [showNavigation, setShowNavigation] = useState(false);
     const observedRef = useRef<HTMLDivElement>(null);
+
+
+    const [springs, api] = useSprings(
+        slides.length,
+        () => ({
+            from: { opacity: 0 },
+        }),
+        []
+    )
+
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
                     console.log('Intersection detected, starting animation');
-                    revealSlidesAPI.start({
-                        to: { opacity: 1 },
-                        config: revealConfig,
-                        delay: 1,
 
+                    // revealSlidesAPI.start({
+                    //     to: {
+                    //         opacity: 1,
+                    //     },
+                    //     config: revealConfig,
+                    // });
+
+                    api.start((index) => {
+                        console.log('Index:', index);
+                        return {
+                            to: {
+                                opacity: 1,
+                            },
+                            config: revealConfig,
+                            delay: index * 300,
+                        }
                     });
                     setShowNavigation(true);
                     // Optional: only play once
@@ -174,86 +163,57 @@ function MacbookNeo() {
                 }
             },
             {
-                threshold: 0.5,
+                threshold: 0.1,
             }
         );
 
         if (observedRef.current) observer.observe(observedRef.current);
 
         return () => observer.disconnect();
-    }, [revealSlidesAPI, observedRef]);
+    }, [observedRef]);
 
     return (
         <div>
             <div className='w-screen h-screen bg-gray-200' />
             <div className='w-screen h-screen bg-gray-200' />
             <div className='w-screen h-screen bg-gray-200' />
-            <div
-                ref={scrollContainerRef}
-                style={{
-                    '--auto-play-progress': 0,
-                } as React.CSSProperties}
-                data-player-state={playerState}
-                className='relative   '
-            >
 
-                <animated.div
-                    style={revealSlides}
-                    className='w-screen h-screen flex items-center  gallery-page-wrapper'
+            <div
+                ref={wrapperRef}
+                data-player-state={playerState}
+                className='relative h-screen  gallery-page-wrapper  bg-red-300'
+            >
+                <div
+                    ref={wrapperRef}
+                    className='w-screen h-screen flex items-center '
                 >
                     <div ref={observedRef} className='w-full media-gallery-wrapper'>
                         <div
-                            onScroll={(e) => {
-                                const offsets = slidesOffsets.current;
-                                if (!offsets || offsets.length < 2) return;
 
-                                const scrollLeft = (e.target as HTMLDivElement).scrollLeft;
-
-                                // Piecewise linear interpolation between snap positions
-                                let progress = 0;
-                                if (scrollLeft <= offsets[0]) {
-                                    progress = 0;
-                                } else if (scrollLeft >= offsets[offsets.length - 1]) {
-                                    progress = offsets.length - 1;
-                                } else {
-                                    for (let i = 0; i < offsets.length - 1; i++) {
-                                        if (scrollLeft <= offsets[i + 1]) {
-                                            progress = i + (scrollLeft - offsets[i]) / (offsets[i + 1] - offsets[i]);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                progress = parseFloat(progress.toFixed(3));
-
-                                // Raw float while scrolling
-                                scrollContainerRef.current?.style.setProperty('--auto-play-progress', progress.toString());
-
-                                // Snap to nearest integer once scrolling stops
-                                if (scrollEndTimer.current) clearTimeout(scrollEndTimer.current);
-                                scrollEndTimer.current = window.setTimeout(() => {
-                                    const snapped = Math.round(progress);
-                                    scrollContainerRef.current?.style.setProperty('--auto-play-progress', snapped.toString());
-                                }, 50);
-                            }}
-                            ref={galleryScrollRef}
-                            className='w-full scroll-container media-gallery'
-                        >
+                            className='w-full scroll-container media-gallery' >
                             <ul className='media-card-set'>
                                 {slides.map((slide, index) => (
-                                    <li
-                                        style={{
-                                            '--slide-index': index,
-                                        } as React.CSSProperties}
-                                        onClick={() => handleClickOnSlide(index, true)}
-                                        ref={(el) => {
-                                            if (el) slideEls.current[index] = el;
-                                        }}
-                                        className='gallery-item'
+                                    <animated.li
+                                        className='gallery-item '
                                         key={slide.id}
                                         id={`media-card-gallery-item-${index + 1}`}
+                                        style={{
+                                            '--slide-index': index,
+                                            ...springs[index],
+                                        } as any}
+                                        onClick={() => handleClickOnSlide(index, true)}
                                     >
                                         <div className='card'>
+                                            <div className='caption-container'>
+                                                <div className='caption-animation-container'
+                                                    style={{
+                                                        '--caption-width-desktop': slide.captionWidth[0],
+                                                        '--caption-width-mobile': slide.captionWidth[1],
+                                                    } as React.CSSProperties}
+                                                >
+                                                    <p className='typography-media-card-gallery-headline'>{slide.title}</p>
+                                                </div>
+                                            </div>
                                             <div className='media-container'
                                                 style={{
                                                     '--p-width-desktop': slide.sizes[0].width,
@@ -267,30 +227,35 @@ function MacbookNeo() {
                                             </div>
 
                                         </div>
-                                    </li>
+                                    </animated.li>
                                 ))}
                             </ul>
                         </div>
                     </div>
-                </animated.div>
+                </div>
 
-                <div className=' pointer-events-none absolute top-0 left-0 flex flex-col  justify-end items-center z-0 h-full w-full'>
-                    <div className=' pointer-events-auto sticky z-[9] left-1/2 bottom-[32px] -translate-x-1/2'>
-                        {
-                            showNavigation && (
+                <div className='absolute w-full h-screen   top-0 left-0 flex flex-col justify-end items-center'>
+
+                    {
+                        showNavigation && (
+                            <div className='h-[56px] pointer-events-auto sticky z-[4] left-1/2 bottom-[32px] -translate-x-1/2'>
                                 <SlidesNavigation
                                     slides={slides}
                                     activeIndex={activeIndex}
                                     handlePlayerClick={handlePlayerClick}
-                                    playerState="playing"
+                                    playerState={playerState}
                                     handleClickOnSlide={handleClickOnSlide}
                                 />
-                            )
-                        }
-                    </div>
+                            </div>
+                        )
+                    }
                 </div>
 
+
             </div>
+
+            <div className='w-screen h-screen bg-gray-200' />
+            <div className='w-screen h-screen bg-gray-200' />
         </div>
     );
 }

@@ -1,0 +1,178 @@
+
+/* Navigation : -------------------------------------------------- */
+
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dot-nav-container {
+    border-radius: 28px;
+    /* background: rgba(150, 206,  calc(var(--auto-play-progress) * 100), 0.6); */
+    background: var(--navigation-container-bg);
+    backdrop-filter: blur(24px);
+
+    height: 56px;
+    display: flex;
+    align-items: center;
+
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.dot-nav-items {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Player button -------------------------------------------------- */
+
+.player-btn {
+    margin-inline-start: var(--margin-inline-start);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: var(--navigation-container-bg);
+    backdrop-filter: blur(16px);
+    cursor: pointer;
+     
+    color: #1d1d1f;
+}
+.player-btn-inner-content {
+    width: 100%;
+    height: 100%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.player-btn:hover {
+    background: var(--navigation-container-bg-hover);
+}
+
+.player-icon-stack {
+    display: grid;
+    grid-template-areas: "stack";
+    align-items: center;
+    justify-items: center;
+}
+
+.player-icon {
+    grid-area: stack;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.player-icon[data-visible="true"] {
+    opacity: 1;
+}
+
+.dot-nav-item{
+    flex-grow: 0;
+    height: var(--sk-dotnav-size);
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+}
+
+.dot-nav-link {
+    /* reset link defaults */
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+
+    /* --item-index cascades from parent li.dot-nav-item */
+
+    /* this is always between 0 and 1  */
+    /* because item-index is ways gonna be the same float or in same range as autoplayprogress */
+    --item-progress: calc(var(--item-index) - var(--auto-play-progress) );
+
+    /* make sure the value is always positive */
+    --abs-item-progress: max(var(--item-progress), -1 * var(--item-progress));
+
+    /* range from 0 to 1 */
+    --item-expand-amount: min((1 - var(--abs-item-progress)), 1);
+
+    --progress-bar-delta-width: calc(var(--progress-bar-active-width) - var(--sk-dotnav-size));
+
+    /* to make the width change smoother */
+    will-change: width, min-width;
+    transform: translateZ(0);
+
+    max-width: calc(var(--progress-bar-active-width));
+    /* we add var(--sk-dotnav-size) because we want to add the delta ontop of teh width otehrwise the dot navs  */
+    /* will collpase all thouway to 0px */
+    
+    /* --item-intial-reveal is going to be used to animate the width of teh first dot from  dotszi to expanded size  */
+    /* this will be the last phase of the intial reavel of the nav dots  */
+    /* check SlidesNavigation to check the phases which are handled using js  */
+    /* later the item-intial-reveal will be set to 1, so the width of the dots will be controlled by the expand amount only  */
+    min-width: calc(var(--progress-bar-delta-width) * var(--item-expand-amount)* var(--item-intial-reveal-expand-amount)  + var(--sk-dotnav-size));
+
+    width: var(--sk-dotnav-size);
+    height: var(--sk-dotnav-size);
+
+    /* margin-top: calc(var(--item-expand-amount) * 20px); */
+
+    /* transition: all 0.2s cubic-bezier(0, 0.55, 0.45, 1); */
+
+    background: var(--navigation-dot-bg);
+    border-radius: 8px;
+}
+
+/* Autoplay progress fill ::after */
+.dot-nav-link::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    min-width: 15%;
+    margin-inline-start: -15%;
+    background: black;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.dot-nav-link[data-active="true"]::after {
+    animation: autoplay-fill calc(var(--autoplay-duration, 6000) * 1ms) linear forwards;
+}
+
+@keyframes autoplay-fill {
+    from { width: 15%; }
+    to   { width: 115%; }
+}
+
+/* Freeze the progress bar when paused */
+[data-player-state="paused"] .dot-nav-link[data-active="true"]::after {
+    animation-play-state: paused;
+    width: 15%;
+}
+
+.dot-nav-link:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
