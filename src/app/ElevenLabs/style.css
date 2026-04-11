@@ -1,0 +1,84 @@
+.noise{
+    position: absolute;
+    top: 0;
+    left: 0;
+    --noise-png: url(https://eleven-public-cdn.elevenlabs.io/marketing_website/_next/static/media/noise.24b8225d.png);
+    --noise-avif: url(https://eleven-public-cdn.elevenlabs.io/marketing_website/_next/static/media/noise@20aq.289c1f1d.avif);
+    --noise-bg-image: ;
+
+    /* here we want to actually render the pixel from the noise images */
+    image-rendering: pixelated;
+
+    background-image: image-set(
+         var(--noise-avif) type('image/avif'), 
+        var(--noise-png) type('image/png')
+    );
+    opacity: 0.6;
+    width: 100%;
+    height: 100%;
+
+    background-size: 128px;
+    mix-blend-mode: overlay;
+
+}
+
+
+.card{
+    border-radius: 1.5rem;
+    border-color: #E5E5E5;
+    background-color: rgb(245 243 241 );
+    display: flex;
+    flex-direction: row;
+    gap: 0px;
+    padding: 24px;
+    width: fit-content;
+    max-width: fit-content;
+    width: 890px;
+}
+
+
+
+.image-wrapper{
+    --base-transition-duration: 0.6s;
+    --transition-duration-hovered: calc(var(--base-transition-duration) * 1);
+    --transition-duration-unhovered: calc(var(--base-transition-duration) * 0.5);
+
+    --zIndex-unhovered:0;
+    --zIndex-hovered:3;
+    --translate-y-unhovered:0.75rem;
+
+    
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+    
+    position: relative;
+    border-radius: 12px;
+
+    width: min(max(331px, calc(100% - 24px)), 431px);
+    overflow: hidden;
+    
+    mask-size: 200% 100%;
+}
+
+.image-wrapper:first-child{
+    mask-image: linear-gradient(to right, white calc(75%), transparent calc(83.3333%));
+    mask-position: 0px 0px;
+    z-index: var(--zIndex-hovered);
+}
+.image-wrapper:last-child{
+    mask-image: linear-gradient(to left, white calc(75%), transparent calc(83.3333%));
+    mask-position: 100% 0px;
+    z-index: var(--zIndex-unhovered);
+}
+
+
+.image-wrapper:last-child{
+    margin-left: -25px;
+}
+
+.image-wrapper img{
+     width: 100%;
+     height: auto;
+     object-fit: cover;
+}
+
