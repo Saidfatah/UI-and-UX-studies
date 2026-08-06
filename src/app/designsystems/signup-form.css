@@ -1,0 +1,180 @@
+/* Figma-style signup form
+   Two states:
+   - inactive/empty: only the gray input bar + arrow
+   - active/has-value: bordered white card expands around the input,
+     revealing the checkbox ("I agree...") and the error message.
+   All sizing in rems. */
+*{
+    --input-hehgit : 3rem;
+    --spacing-sm : 0.5rem;
+}
+
+.signup {
+    width: 20rem;
+    font-family: var(--font-inter, "Inter", system-ui, sans-serif);
+    color: #000;
+    position: relative;
+}
+
+
+/* The expanding white card. Only rendered/visible in the active state.
+   Negative top/left + width:100% + 2*spacing makes it bleed 1rem past
+   the input on every side (matching .css-14m82tl). */
+.signup__card_active {
+    --spacing: 1rem;
+    position: absolute;
+    z-index: 0;
+    top: calc(-1 * var(--spacing));
+    left: calc(-1 * var(--spacing));
+    width: calc(100% + (2 * var(--spacing)));
+    padding: var(--spacing);
+    padding-top: calc(var(--input-hehgit) + var(--spacing) + var(--spacing-sm));
+    height: fit-content;
+    border: 1px solid #000;
+    background: #fff;   
+    opacity: 1; 
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: rgba(0, 0, 0, 0.2) 0 0.125rem 0.125rem;
+}
+
+.signup__card_in_active {
+    --spacing: 0rem;
+    position: absolute;
+    z-index: 0;
+    top:0%;
+    left:0%;
+    width: 100%;
+    padding: var(--spacing);
+    padding-top: 0;
+    height: fit-content;
+    border: 1px solid #000;
+    background: #ffffff00;  
+    opacity: 0; 
+    transition: 0s all;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 0.125rem 0.125rem;
+}
+
+
+
+
+
+/* Gray input row (.css-peqgor) */
+.signup__inputRow {
+    --inputBackgroundColor: rgba(242, 242, 242, 1);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end;
+    background: var(--inputBackgroundColor);
+}
+
+/* Input (.css-1ntgnb9) — 16px = 1rem */
+.signup__input {
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: var(--input-hehgit);
+    margin: 0;
+    padding: 0.75rem 1.4375rem 0.625rem 1rem;
+    border: 0;
+    outline: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1;
+    position: relative;
+}
+
+.signup__input::placeholder {
+    color: #767676;
+}
+
+/* Arrow button (.css-dlc9zh) — inline SVG version, animated with transform */
+.signup__arrow {
+    appearance: none;
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 3.3125rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+}
+
+.signup__arrow svg {
+    width: 2.3125rem;
+    height: auto;
+    transition: transform 175ms ease-out;
+}
+
+.signup__arrow:hover svg {
+    transform: translateX(0.25rem);
+}
+
+/* Checkbox row — hidden until active */
+.signup__agree {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.signup__checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.signup__indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    background: rgba(242, 242, 242, 1);
+    color: #000;
+}
+
+.signup__indicator svg {
+    width: 0.8125rem;
+    height: 0.8125rem;
+}
+
+/* X shows only when unchecked; hidden once checked */
+.signup__checkbox:checked + .signup__indicator svg {
+    opacity: 0;
+}
+
+/* "I agree..." label — 12px Inter regular */
+.signup__agreeText {
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.signup__agreeText a {
+    color: inherit;
+}
+
+/* Error message — 12px Inter regular, uppercase */
+.signup__error {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #f24822;
+}
