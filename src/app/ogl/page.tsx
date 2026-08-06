@@ -1,8 +1,9 @@
-import OGLCanvas from "./OglCanvas";
+import FullScreenShaderExample from "./FullScreenShaderExample";
+import OglSpiningBoxExample from "./OglSpiningBoxExample";
 
 function OglPage() {
-    return (<div className="w-screen h-screen flex items-center justify-center">
-        <OGLCanvas />
+    return (<div className="w-screen h-screen ">
+        <FullScreenShaderExample />
     </div>);
 }
 export default OglPage;
