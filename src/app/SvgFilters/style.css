@@ -1,0 +1,7 @@
+.image-filtered {
+    height: 400px;
+    width: 400px;
+    border-radius: 999px;
+    overflow: hidden;
+    filter: url(#rgb-shift);
+}

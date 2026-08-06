@@ -1,0 +1,100 @@
+.liquid-avatar {
+  --la-size: 256px;
+  --la-bg: #0d0b1a;
+  --la-accent: #ffffff;
+
+  position: relative;
+  width: var(--la-size);
+  height: var(--la-size);
+  border-radius: 50%;
+  cursor: pointer;
+  /* Perf hints — SVG displacement filters are heavy (esp. Firefox). */
+  contain: layout paint;
+  will-change: transform;
+  outline: none;
+}
+
+/* SVG that only carries the filter def — not rendered. */
+.liquid-avatar__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.liquid-avatar__stage {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--la-bg);
+  isolation: isolate;
+}
+
+/* Portrait carries the animated warp filter (applied inline). */
+.liquid-avatar__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  user-select: none;
+  will-change: filter;
+  /* Slight overscale so displaced edges never reveal the background. */
+  transform: scale(1.08);
+}
+
+/* Hover ring. */
+.liquid-avatar__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--la-accent);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 250ms ease, transform 250ms ease;
+  pointer-events: none;
+}
+
+/* Hover play button. */
+.liquid-avatar__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30%;
+  height: 30%;
+  transform: translate(-50%, -50%) scale(0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--la-accent);
+  color: #111;
+  opacity: 0;
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.liquid-avatar:hover .liquid-avatar__ring,
+.liquid-avatar:focus-visible .liquid-avatar__ring {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.liquid-avatar:hover .liquid-avatar__play,
+.liquid-avatar:focus-visible .liquid-avatar__play {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.liquid-avatar:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+/* Reduced-motion: static portrait, no warp churn. */
+.liquid-avatar.is-reduced .liquid-avatar__img {
+  will-change: auto;
+  transform: none;
+}
