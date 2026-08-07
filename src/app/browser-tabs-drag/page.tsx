@@ -7,7 +7,7 @@ import {
     useTransform,
     type MotionValue,
 } from "framer-motion";
-import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 
 import "./style.css";
 import { leftFlareClipPath, rightFlareClipPath, scaleRadius } from "./utils";
@@ -91,25 +91,29 @@ function BrowserTabsDrag() {
 
     const mainDivWidth = useRef(800);
     const currentTabWidth = 100;
+    const TAB_GAP = 8; // matches the flex `gap-2` between tabs
 
-    // Active tab horizontal drag distance -> radii.
-    // Content corner and the tab flare open at different gains (1.5 vs 1.2).
     const dragX = useMotionValue(0);
-    const invertDragX = useTransform(dragX, (x) => mainDivWidth.current - (x + currentTabWidth));
 
+    // Resting left offset of the active tab inside the row. The row and the
+    // content both start at the wrapper's left edge, so this is also the tab's
+    // offset inside the content. Lets the flares / corner radii reflect the
+    // tab's real position when you just SELECT a tab without dragging.
+    const tabBaseLeft = activeTab * (currentTabWidth + TAB_GAP);
 
-    const leftFlareRadius = useTransform(dragX, (x) => scaleRadius(x, 0.5, 12));
+    // Absolute distance from the tab's left / right edge to the content's
+    // left / right edge; dragX shifts the tab from its base position.
+    const leftDistance = useTransform(dragX, (x) => tabBaseLeft + x);
+    const rightDistance = useTransform(dragX, (x) => mainDivWidth.current - (tabBaseLeft + x + currentTabWidth));
+
+    const leftFlareRadius = useTransform(leftDistance, (d) => scaleRadius(d, 0.5, 12));
     const flareLeftClip = useTransform(leftFlareRadius, leftFlareClipPath);
 
-
-
-
-    const rightFlareRadius = useTransform(invertDragX, (x) => scaleRadius(Math.abs(x), 0.5, 12));
+    const rightFlareRadius = useTransform(rightDistance, (d) => scaleRadius(d, 0.5, 12));
     const flareRightClip = useTransform(rightFlareRadius, (r) => rightFlareClipPath(r, r));
 
-    const contentTopLeftRadius = useTransform(dragX, (x) => scaleRadius(x, 0.5, 20));
-    const contentTopRightRadius = useTransform(invertDragX, (x) => scaleRadius(Math.abs(x), 0.5, 20));
-    console.log(dragX.get());
+    const contentTopLeftRadius = useTransform(leftDistance, (d) => scaleRadius(d, 0.5, 20));
+    const contentTopRightRadius = useTransform(rightDistance, (d) => scaleRadius(d, 0.5, 20));
 
     return (
         <div className="w-screen h-screen flex justify-center items-center bg-gray-900">
@@ -123,7 +127,10 @@ function BrowserTabsDrag() {
                                 key={label}
                                 label={label}
                                 active={index === activeTab}
-                                onClick={() => setActiveTab(index)}
+                                onClick={() => {
+                                    setActiveTab(index);
+                                    dragX.set(0);
+                                }}
                                 dragConstraints={contentRef}
                                 dragX={dragX}
                                 leftFlareRadius={leftFlareRadius}
