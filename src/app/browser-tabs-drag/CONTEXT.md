@@ -60,8 +60,30 @@ Goal: the content panel's rounded top-left corner (convex) and the tab's flare (
 1. **Tangent continuity** — the convex content arc and concave flare arc must share a tangent at their inflection point (both vertical where they leave the tab edge, both horizontal where they meet the content top line). Equal radii → symmetric S; different gains (1.5 vs 1.2) → asymmetric ogee.
 2. **Co-location** — a true junction S only forms where the active tab sits *above* the rounded content corner (i.e. the leftmost tab). For inner tabs the content top edge is flat there, so either (a) the flare alone must form the full ogee (concave + a small convex fillet), or (b) the content rounding must follow the active tab's x, not just the fixed top-left corner. **Undecided.**
 
+### Drag-to-reorder (swap tabs)
+The active tab can be dragged horizontally to reorder it among the others. Neighbours slide aside live while dragging; on release the dragged tab settles into its target slot and the array commits.
+
+**Slot model:**
+- `PITCH = currentTabWidth + TAB_GAP` (`100 + 8 = 108`). One pitch of drag = one slot.
+- `utils.ts → getTargetSlot(fromIndex, dragOffset, pitch, tabCount)` = `clamp(fromIndex + round(dragOffset / pitch), 0, tabCount-1)`. `round` gives the **midpoint threshold** (a swap triggers once the tab passes a neighbour's midpoint, ~54px). Clamping means dragging into empty space past either end just maps to the first / last slot.
+- `utils.ts → getReorderShift(tabIndex, fromIndex, targetIndex, pitch)` → how far a **non-dragged** tab slides to open the target slot: `-pitch` for tabs between old→new when dragging right, `+pitch` for tabs between new→old when dragging left, else `0`.
+- `utils.ts → moveItem(list, fromIndex, toIndex)` → pure array reorder (splice out, splice in). The commit step.
+
+**Wiring (`page.tsx`):**
+- `tabs` is now `useState(TABS)` so reorders persist.
+- `targetSlot` (`useState`) = the slot currently hovered. `useMotionValueEvent(dragX, "change", …)` recomputes it via `getTargetSlot` on every drag frame.
+- Each tab is wrapped in a `motion.div` with `animate={{ x: active ? 0 : getReorderShift(index, activeTab, targetSlot, PITCH) }}` and a spring transition. The **active** tab's wrapper stays at `x:0` because the tab itself is already driven by `dragX`; only the others slide.
+- `onDragEnd` → `handleDragEnd`: `to = getTargetSlot(activeTab, dragX.get(), …)`, then `animate(dragX, (to - activeTab) * PITCH, spring)` to settle the tab into the slot. `onComplete` commits: `moveItem(tabs, activeTab, to)`, `setActiveTab(to)`, `setTargetSlot(to)`, `dragX.set(0)`.
+
+**FLIP-jump avoidance:** after `moveItem` every tab already sits in its final slot, so the leftover `animate x` shifts are stale and must snap to `0` **without** sliding. An `instantSnap` flag sets the wrapper `transition` to `{ duration: 0 }` for the commit frame, then clears on the next `requestAnimationFrame`.
+
+**Spring params:** `{ type: "spring", stiffness: 500, damping: 40 }`, shared by the neighbour slides and the release settle.
+
 ### State
+- `tabs` array held in `useState` (from `TABS`); reordered on swap commit.
 - `activeTab` index held in `useState` (defaults to `0`).
+- `targetSlot` (`useState`) — hovered slot during a drag; drives neighbour shifts.
+- `instantSnap` (`useState`) — one-frame flag to cancel stale shifts on commit.
 - Clicking a tab sets it active.
 - Tabs sourced from a static `TABS = ["Tab 1", "Tab 2", "Tab 3"]` array.
 - `contentRef` (`useRef<HTMLDivElement>`) on the content panel, passed down as drag constraints.
@@ -84,10 +106,10 @@ Goal: the content panel's rounded top-left corner (convex) and the tab's flare (
 4. Linked the active tab's drag to the content panel's top-left border radius. First implemented with an `interpolate()` util (`[0,200]→[0,20]`), then **pivoted** to a direct clamped mapping (radius = `min(abs(dragX), 20)`) for a 1:1 feel; `interpolate` util left in place but unused.
 5. Prototyped browser-tab concave "flares" (`radial-gradient` `InvertedCorner`, then a static `.tab::after` `clip-path`).
 6. Moved the left flare to a **drag-driven** `clip-path: path()` element: added `utils.ts` (`scaleRadius`, `flareClipPath`), split the single radius into `contentRadius` (gain 1.5) and `flareR` (gain 1.2), removed the static `::after` from `style.css`. Opened the seamless "S / ogee" design question (see above).
+7. Added the **right flare + top-right content radius**, mirroring the left, driven by the tab's distance to the content's right edge. Switched both sides to an **absolute edge-distance** model (`leftDistance` / `rightDistance` from `tabBaseLeft = activeTab * PITCH`) so selecting a non-leftmost tab (without dragging) still computes the correct radii; gains dropped to `0.5`, caps `12` (flare) / `20` (content).
+8. Added **drag-to-reorder**: `tabs` became state, added `getTargetSlot` / `getReorderShift` / `moveItem` to `utils.ts`, neighbour tabs slide via `animate x`, release settles the dragged tab into its slot then commits (`moveItem`), with an `instantSnap` flag to avoid a FLIP jump on commit.
 
 ## Next Steps
 - **Decide the seamless S/ogee approach** (tangent continuity + co-location; see open question above).
-- Possibly add a matching right flare / a convex fillet so the flare is a full ogee on its own.
-- Drag-to-reorder tabs (swap order as the active tab passes neighbors).
-- Snap the dragged tab back into place on release.
+- Make `rightFlareClipPath` a true arc-based mirror of the left concave corner (currently a quadratic-curve foot, not a visual match).
 - Possibly add icons, close (×) buttons, and real tab content.

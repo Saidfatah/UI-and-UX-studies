@@ -2,15 +2,24 @@
 
 import clsx from "clsx";
 import {
+    animate,
     motion,
     useMotionValue,
+    useMotionValueEvent,
     useTransform,
     type MotionValue,
 } from "framer-motion";
 import { useRef, useState, type RefObject } from "react";
 
 import "./style.css";
-import { leftFlareClipPath, rightFlareClipPath, scaleRadius } from "./utils";
+import {
+    getReorderShift,
+    getTargetSlot,
+    leftFlareClipPath,
+    moveItem,
+    rightFlareClipPath,
+    scaleRadius,
+} from "./utils";
 
 
 
@@ -20,6 +29,7 @@ type TabProps = {
     onClick: () => void;
     dragConstraints: RefObject<HTMLDivElement>;
     dragX?: MotionValue<number>;
+    onDragEnd?: () => void;
     buttonRef?: RefObject<HTMLButtonElement>;
     leftFlareRadius?: MotionValue<number>;
     rightFlareRadius?: MotionValue<number>;
@@ -27,7 +37,7 @@ type TabProps = {
     rightFlareClip?: MotionValue<string>;
 };
 
-function Tab({ label, active, onClick, dragConstraints, dragX, buttonRef, leftFlareRadius, rightFlareRadius, leftFlareClip, rightFlareClip }: TabProps) {
+function Tab({ label, active, onClick, dragConstraints, dragX, onDragEnd, buttonRef, leftFlareRadius, rightFlareRadius, leftFlareClip, rightFlareClip }: TabProps) {
     return (
         <motion.button
             ref={buttonRef}
@@ -36,6 +46,7 @@ function Tab({ label, active, onClick, dragConstraints, dragX, buttonRef, leftFl
             dragConstraints={dragConstraints}
             dragElastic={0}
             dragMomentum={false}
+            onDragEnd={onDragEnd}
             style={active ? { x: dragX } : undefined}
             className={clsx(
                 "text-sm font-medium transition-colors w-[100px]",
@@ -86,6 +97,7 @@ function Tab({ label, active, onClick, dragConstraints, dragX, buttonRef, leftFl
 const TABS = ["Tab 1", "Tab 2", "Tab 3"];
 
 function BrowserTabsDrag() {
+    const [tabs, setTabs] = useState(TABS);
     const [activeTab, setActiveTab] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +105,25 @@ function BrowserTabsDrag() {
     const currentTabWidth = 100;
     const TAB_GAP = 8; // matches the flex `gap-2` between tabs
 
+    // One slot = a tab plus the gap after it. Dragging a full pitch swaps a tab
+    // with its neighbor.
+    const PITCH = currentTabWidth + TAB_GAP;
+
     const dragX = useMotionValue(0);
+
+    // Which slot the dragged (active) tab currently hovers over. Non-dragged
+    // tabs shift to make room for this slot while the drag is in progress.
+    const [targetSlot, setTargetSlot] = useState(activeTab);
+
+    // On commit the reordered array already puts each tab in its final slot, so
+    // the leftover `animate x` shift must snap to 0 without sliding. This flag
+    // makes that one frame instant.
+    const [instantSnap, setInstantSnap] = useState(false);
+
+    // Live-track the hovered slot as the active tab is dragged.
+    useMotionValueEvent(dragX, "change", (x) => {
+        setTargetSlot(getTargetSlot(activeTab, x, PITCH, tabs.length));
+    });
 
     // Resting left offset of the active tab inside the row. The row and the
     // content both start at the wrapper's left edge, so this is also the tab's
@@ -115,31 +145,73 @@ function BrowserTabsDrag() {
     const contentTopLeftRadius = useTransform(leftDistance, (d) => scaleRadius(d, 0.5, 20));
     const contentTopRightRadius = useTransform(rightDistance, (d) => scaleRadius(d, 0.5, 20));
 
+    // On release: settle the dragged tab into its target slot, then commit the
+    // reorder. The array reshuffle lands every tab in its final slot, so we flip
+    // `instantSnap` for that frame to cancel the now-stale `animate x` shifts
+    // without a visible jump.
+    function handleDragEnd() {
+        const to = getTargetSlot(activeTab, dragX.get(), PITCH, tabs.length);
+
+        animate(dragX, (to - activeTab) * PITCH, {
+            type: "spring",
+            stiffness: 500,
+            damping: 40,
+            onComplete: () => {
+                setInstantSnap(true);
+                setTabs((prev) => moveItem(prev, activeTab, to));
+                setActiveTab(to);
+                setTargetSlot(to);
+                dragX.set(0);
+                requestAnimationFrame(() => setInstantSnap(false));
+            },
+        });
+    }
+
     return (
         <div className="w-screen h-screen flex justify-center items-center bg-gray-900">
             <div className="w-[800px]">
 
                 {/* the tabs here */}
                 <div className="flex gap-2 mb-0">
-                    {TABS.map((label, index) => (
-                        <div key={label} >
-                            <Tab
+                    {tabs.map((label, index) => {
+                        const active = index === activeTab;
+                        // Non-dragged tabs slide aside to open the target slot.
+                        // The active tab is driven by `dragX`, so its wrapper
+                        // stays put.
+                        const shift = active
+                            ? 0
+                            : getReorderShift(index, activeTab, targetSlot, PITCH);
+
+                        return (
+                            <motion.div
                                 key={label}
-                                label={label}
-                                active={index === activeTab}
-                                onClick={() => {
-                                    setActiveTab(index);
-                                    dragX.set(0);
-                                }}
-                                dragConstraints={contentRef}
-                                dragX={dragX}
-                                leftFlareRadius={leftFlareRadius}
-                                rightFlareRadius={rightFlareRadius}
-                                leftFlareClip={flareLeftClip}
-                                rightFlareClip={flareRightClip}
-                            />
-                        </div>
-                    ))}
+                                animate={{ x: shift }}
+                                transition={
+                                    instantSnap
+                                        ? { duration: 0 }
+                                        : { type: "spring", stiffness: 500, damping: 40 }
+                                }
+                                style={{ zIndex: active ? 10 : 0 }}
+                            >
+                                <Tab
+                                    label={label}
+                                    active={active}
+                                    onClick={() => {
+                                        setActiveTab(index);
+                                        setTargetSlot(index);
+                                        dragX.set(0);
+                                    }}
+                                    dragConstraints={contentRef}
+                                    dragX={dragX}
+                                    onDragEnd={handleDragEnd}
+                                    leftFlareRadius={leftFlareRadius}
+                                    rightFlareRadius={rightFlareRadius}
+                                    leftFlareClip={flareLeftClip}
+                                    rightFlareClip={flareRightClip}
+                                />
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
                 {/* tab content */}
