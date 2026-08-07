@@ -39,16 +39,16 @@ function Tab({ label, active, onClick, dragConstraints, dragX, buttonRef, leftFl
             style={active ? { x: dragX } : undefined}
             className={clsx(
                 "text-sm font-medium transition-colors w-[100px]",
-                "h-[42px] flex items-center",
+                "h-[36px] flex items-center",
                 active && "relative z-10 cursor-grab active:cursor-grabbing",
             )}
         >
             <div
                 className={clsx(
                     "tab w-full",
-                    "px-[16px] rounded-md flex items-center",
-                    active && "relative h-[42px] rounded-b-none bg-white text-black",
-                    !active && "h-[32px] bg-white/20 text-white",
+                    "px-[16px] rounded-[12px] flex items-center justify-center",
+                    active && "relative h-full rounded-b-none bg-white text-black",
+                    !active && "h-[28px] bg-white/20 text-white",
                 )}
 
 
