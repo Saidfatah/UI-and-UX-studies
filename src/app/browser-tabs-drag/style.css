@@ -1,0 +1,8 @@
+.tab {
+    position: relative;
+    z-index: 0;
+}
+
+/* The left flare is now rendered as a drag-driven element in page.tsx
+   (motion.span + clip-path from `flareClipPath`), so the static ::after
+   concave corner that used to live here has been removed. */
