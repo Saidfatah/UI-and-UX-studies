@@ -156,7 +156,7 @@ const HeaderExpandingText = forwardRef<HeaderExpandingTextRef, Props>(
 
         return (
             <div
-                className="text-black deanGothic body-24 header-item-w pointer-events-none"
+                className=" deanGothic body-24 header-item-w pointer-events-none"
             >
                 <a
                     ref={(element) => {

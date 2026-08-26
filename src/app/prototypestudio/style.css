@@ -26,6 +26,11 @@
     font-display: swap;
 }
 
+* {
+    --padding-container: 2rem;
+    --header-height: 5.5rem;
+}
+
 html {
     font-size: 12px;
 }
@@ -38,6 +43,62 @@ body {
      text-rendering: optimizeSpeed;
      font-feature-settings: "kern" off;
 }
+
+body, html{
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    line-height: inherit;
+    margin: 0;
+}
+
+
+
+
+
+.header {
+    color: var(--menu-color);
+}
+
+ 
+.border-transparent {
+    border-color: #0000;
+}
+.border-b-px {
+    border-bottom-width: 1px;
+}
+.items-center {
+    align-items: center;
+}
+.w-full {
+    width: 100%;
+}
+.h-header {
+    height: var(--header-height);
+}
+.z-header {
+    z-index: 9;
+}
+.top-0 {
+    top: 0;
+}
+.left-0 {
+    left: 0;
+}
+.fixed {
+    position: fixed;
+}
+
+
+
+
+.main {
+    height: 100%;
+    overflow-y: scroll;
+}
+
 
 .body-16 {
     font-size: 1.6rem;
@@ -72,8 +133,6 @@ body {
 }
 
 
-
-
 .transition-opacity {
     transition-duration: .15s;
     transition-property: opacity;
@@ -86,4 +145,30 @@ body {
 
 .ease-out {
     transition-timing-function: cubic-bezier(.23, 1, .32, 1);
+}
+
+
+.absolute-full {
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+
+.grid-w {
+    -moz-column-gap: var(--padding-container);
+    column-gap: var(--padding-container);
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    padding-left: var(--padding-container);
+    padding-right: var(--padding-container);
+}
+
+
+@media (min-width: 768px) {
+    .grid-w {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
 }

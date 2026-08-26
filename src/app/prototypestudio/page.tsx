@@ -1,14 +1,20 @@
 "use client";
 import Header from "./header";
+import HomeCoverSection from "./HomeCoverSection";
 import "./style.css";
 
 function PrototypeStudio() {
 
 
     return (
-        <div className="w-screen h-screen flex items-start justify-end p-[24px]">
+        <>
             <Header />
-        </div>
+            <div className="main content">
+                <div className="home">
+                    <HomeCoverSection/>
+                </div>
+            </div>
+        </>
     );
 }
 
