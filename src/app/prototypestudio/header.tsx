@@ -130,65 +130,86 @@ function Header() {
             </div>
 
             <div className="col-span-10 relative pointer-events-none">
+                <div className="header-menu-inner w-full flex  justify-end gap-x-30 uppercase">
+                    <div
+                        onMouseLeave={handleLeave}
+                        className="header-items flex body-24"
+                    >
+                        <div onMouseEnter={() => handleEnter(0)}>
+                            <HeaderExpandingText
+                                setElementRef={(element) => {
+                                    itemElementsRefs.current[0] = element;
+                                }}
+                                ref={(el) => {
+                                    itemRefs.current[0] = el;
+                                }}
+                                href="#"
+                                mainText="WORKS"
+                                centerText="we've"
+                                rightText="DONE"
+                                onEnter={() => {
+                                    handleEnter(0)
+                                }
+                                }
+                            />
+                        </div>
 
-                <div
-                    onMouseLeave={handleLeave}
-                    className="header-items flex items-center justify-end"
-                >
-                    <div onMouseEnter={() => handleEnter(0)}>
-                        <HeaderExpandingText
-                            setElementRef={(element) => {
-                                itemElementsRefs.current[0] = element;
-                            }}
-                            ref={(el) => {
-                                itemRefs.current[0] = el;
-                            }}
-                            href="#"
-                            mainText="WORKS"
-                            centerText="we've"
-                            rightText="DONE"
-                            onEnter={() => {
-                                handleEnter(0)
-                            }
-                            }
-                        />
+                        <div onMouseEnter={() => handleEnter(1)}>
+                            <HeaderExpandingText
+                                setElementRef={(element) => {
+                                    itemElementsRefs.current[1] = element;
+                                }}
+                                ref={(el) => {
+                                    itemRefs.current[1] = el;
+                                }}
+                                href="#"
+                                mainText="ABOUT"
+                                centerText="our"
+                                rightText="BRAND"
+                                onEnter={() => {
+                                    handleEnter(1)
+                                }
+                                }
+                            />
+                        </div>
+
+                        <div onMouseEnter={() => handleEnter(2)}>
+                            <HeaderExpandingText
+                                setElementRef={(element) => {
+                                    itemElementsRefs.current[2] = element;
+                                }}
+                                ref={(el) => {
+                                    itemRefs.current[2] = el;
+                                }}
+                                href="#"
+                                mainText="CONTACT"
+                                centerText="us"
+                                onEnter={() => {
+                                    handleEnter(2)
+                                }
+                                }
+                            />
+                        </div>
                     </div>
 
-                    <div onMouseEnter={() => handleEnter(1)}>
-                        <HeaderExpandingText
-                            setElementRef={(element) => {
-                                itemElementsRefs.current[1] = element;
-                            }}
-                            ref={(el) => {
-                                itemRefs.current[1] = el;
-                            }}
-                            href="#"
-                            mainText="ABOUT"
-                            centerText="our"
-                            rightText="BRAND"
-                            onEnter={() => {
-                                handleEnter(1)
-                            }
-                            }
-                        />
-                    </div>
-
-                    <div onMouseEnter={() => handleEnter(2)}>
-                        <HeaderExpandingText
-                            setElementRef={(element) => {
-                                itemElementsRefs.current[2] = element;
-                            }}
-                            ref={(el) => {
-                                itemRefs.current[2] = el;
-                            }}
-                            href="#"
-                            mainText="CONTACT"
-                            centerText="us"
-                            onEnter={() => {
-                                handleEnter(2)
-                            }
-                            }
-                        />
+                    <div className="header-socials list-o flex justify-end gap-x-[0.2rem] body-24">
+                        <a 
+                            href="https://www.instagram.com/__prototypestudio/" 
+                            target="_blank" 
+                            rel="noopener" 
+                            className="list-o-item !transition-opacity !duration-smooth !ease-out"
+                        >
+                            IG
+                        </a>
+                        <span className="">/</span>
+                        <a 
+                            href="https://www.youtube.com/@prototypestudio8117" 
+                            target="_blank" 
+                            rel="noopener" 
+                            className="list-o-item !transition-opacity !duration-smooth !ease-out"
+                        >
+                            YT
+                        </a>
                     </div>
                 </div>
             </div>

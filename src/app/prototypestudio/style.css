@@ -133,10 +133,26 @@ body {
 }
 
 
+.list-o:hover .list-o-item{
+    opacity: 0.2;
+}
+.list-o:hover .list-o-item:hover{
+    opacity: 1 !important;
+}
+
+
 .transition-opacity {
     transition-duration: .15s;
     transition-property: opacity;
     transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
+.list-o .list-o-item {
+    pointer-events: auto;
+    transition-duration: .6s;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+    transition-timing-function: cubic-bezier(.23, 1, .32, 1);
 }
 
 .duration-smooth {
@@ -156,6 +172,19 @@ body {
     width: 100%;
 }
 
+
+.gap-x-30 {
+    -moz-column-gap: 3rem;
+    column-gap: 3rem;
+}
+
+
+
+
+
+.list-o {
+    pointer-events: none;
+}
 
 .grid-w {
     -moz-column-gap: var(--padding-container);
