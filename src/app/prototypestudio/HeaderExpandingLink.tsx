@@ -70,13 +70,11 @@ const HeaderExpandingText = forwardRef<HeaderExpandingTextRef, Props>(
             const width = hoverTextRef.current.getBoundingClientRect().width;
 
             hoverWidthRef.current = width;
-
-            // Explicitly set the width so it can be used
-            // consistently by the animation.
-            hoverTextRef.current.style.width = `${width}px`;
         }, []);
 
         const hide = useCallback(() => {
+            hoverTextRef.current?.classList.add('pointer-events-none');
+
             const chars = [
                 ...centerCharRefs.current,
                 ...rightCharRefs.current,
@@ -109,6 +107,8 @@ const HeaderExpandingText = forwardRef<HeaderExpandingTextRef, Props>(
 
 
         const reveal = useCallback(() => {
+            hoverTextRef.current?.classList.remove('pointer-events-none');
+
             const chars = [
                 ...centerCharRefs.current,
                 ...rightCharRefs.current,
