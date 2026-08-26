@@ -107,7 +107,7 @@ function Header() {
 
     return (
         <header
-            className="header fixed top-0 left-0 grid-w items-center w-full h-header border-b-px border-transparent z-header"
+            className="deanGothic body-24 header fixed top-0 left-0 grid-w items-center w-full h-header border-b-px border-transparent z-header"
             style={{ '--menu-color': '#fff' } as React.CSSProperties}
         >
             <div className="col-span-2">
@@ -133,7 +133,7 @@ function Header() {
                 <div className="header-menu-inner w-full flex  justify-end gap-x-30 uppercase">
                     <div
                         onMouseLeave={handleLeave}
-                        className="header-items flex body-24"
+                        className="header-items flex"
                     >
                         <div onMouseEnter={() => handleEnter(0)}>
                             <HeaderExpandingText
@@ -192,7 +192,7 @@ function Header() {
                         </div>
                     </div>
 
-                    <div className="header-socials list-o flex justify-end gap-x-[0.2rem] body-24">
+                    <div className="header-socials list-o flex justify-end gap-x-[0.2rem]">
                         <a 
                             href="https://www.instagram.com/__prototypestudio/" 
                             target="_blank" 
