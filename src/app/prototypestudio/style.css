@@ -1,0 +1,89 @@
+
+@font-face {
+    font-family: 'Dean Gothic';
+    src: url('/fonts/prototypestudio/DeanGothicCMP-Book.316536.woff2') format('woff2'),
+         url('/fonts/prototypestudio/DeanGothicCMP-Book.316536.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Silvana Light Italic';
+    src: url('/fonts/prototypestudio/Silvana-LightItalic.09509d.woff2') format('woff2'),
+         url('/fonts/prototypestudio/Silvana-LightItalic.09509d.woff') format('woff');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Silvana Regular';
+    src: url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff2') format('woff2'),
+         url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+html {
+    font-size: 12px;
+}
+
+body {
+     font-kerning: none;
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+     -webkit-text-rendering: optimizeSpeed;
+     text-rendering: optimizeSpeed;
+     font-feature-settings: "kern" off;
+}
+
+.body-16 {
+    font-size: 1.6rem;
+    line-height: 100%;
+}
+
+.body-24  {
+    font-size: 2.4rem;
+    line-height: 100%;
+}
+ 
+
+.deanGothic {
+    font-family: 'Dean Gothic', sans-serif !important;
+}
+
+.silvanaLightItalic {
+    font-family: 'Silvana Light Italic', sans-serif !important;
+
+}
+
+.silvanaRegular {
+    font-family: 'Silvana Regular', sans-serif !important;
+}
+
+
+.header-items:hover .header-item{
+    opacity: 0.2;
+}
+.header-items:hover .header-item:hover{
+    opacity: 1 !important;
+}
+
+
+
+
+.transition-opacity {
+    transition-duration: .15s;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
+.duration-smooth {
+    transition-duration: .6s;
+}
+
+.ease-out {
+    transition-timing-function: cubic-bezier(.23, 1, .32, 1);
+}
