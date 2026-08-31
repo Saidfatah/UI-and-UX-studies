@@ -93,6 +93,10 @@ p {
 }
 
 
+.z-transition {
+    z-index: 15;
+}
+
 .header {
     color: var(--menu-color);
 }
@@ -135,6 +139,10 @@ p {
 }
 
 
+.font-heading {
+    font-family: SilvanaDisplay, serif;
+}
+
 .body-16 {
     font-size: 1.6rem;
     line-height: 100%;
@@ -145,6 +153,19 @@ p {
     line-height: 100%;
 }
  
+.body-20 {
+    font-size: 2rem;
+    line-height: 100%;
+}
+
+.pb-15 {
+    padding-bottom: 1.5rem;
+}
+
+.mt-15 {
+    margin-top: 1.5rem;
+}
+
 
 .deanGothic {
     font-family: 'Dean Gothic', sans-serif !important;
@@ -243,12 +264,16 @@ p {
     perspective: 500px;
 }
 
+
+.home-cover-title .char, .home-cover-scroll .char {
+    display: inline-block;
+}
+
+
 .home-cover-title .char {
-      display: inline-block;
     transform-style: preserve-3d;
     backface-visibility: hidden;
 }
-
 
 
 .title {
@@ -285,3 +310,6 @@ p {
         line-height: 100%;
     }
 }
+
+
+

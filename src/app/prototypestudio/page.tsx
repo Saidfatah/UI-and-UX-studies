@@ -1,12 +1,11 @@
 "use client";
 import Header from "./header";
-import HomeCoverSection from "./HomeCoverSection";
-import HomeCoverTitle from "./HomeCoverTitle";
 import "./style.css";
 
 import { CustomEase } from "gsap/CustomEase";
-import {gsap} from "gsap";
-import { useEffect, useState } from "react";
+import { gsap } from "gsap";
+import HomeCoverSection from "./CoverSection";
+import LoaderFade from "./LoaderFade";
 
 gsap.registerPlugin(CustomEase);
 
@@ -24,11 +23,11 @@ CustomEase.create(
 
 function PrototypeStudio() {
 
-    
 
     return (
         <>
             <Header />
+            <LoaderFade />
             <div className="main content">
                 <div className="home h-screen flex justify-center items-center">
                     <HomeCoverSection />
