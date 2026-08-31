@@ -18,6 +18,14 @@
 }
 
 @font-face {
+    font-family: 'Silvana Regular Italic';
+    src: url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff2') format('woff2'),
+         url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff') format('woff');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+@font-face {
     font-family: 'Silvana Regular';
     src: url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff2') format('woff2'),
          url('/fonts/prototypestudio/Silvana-RegularItalic.0eb764.woff') format('woff');
@@ -27,12 +35,26 @@
 }
 
 * {
-    --padding-container: 2rem;
-    --header-height: 5.5rem;
+    --color-black: 0 0 0;
+    --color-white: 255 255 255;
+    --color-grid: 0 0 255;
+    --color-blue: 0 0 255;
+    --color-gray: 116 116 116;
+    --color-gray-dark: 51 51 51;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in: cubic-bezier(0.12, 0, 0.39, 0);
+    --ease-in-out: cubic-bezier(0.86, 0, 0.07, 1);
+    --ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --size: 375;
+    --padding-container: 1rem;
+    --vw: 100vw;
+    --vh: calc(var(--vh-initial, 1vh) * 100);
+    --vh-mobile: calc(var(--vh-initial-mobile, 1vh) * 100);
+    --column: calc(var(--vw) / 12 - var(--padding-container) * 2 / 12 - var(--padding-container) * 11 / 12);
+    --header-height: 6rem;
+    --bg-color: #fff;
 }
-
-
-
+ 
 
 
 html {
@@ -313,3 +335,108 @@ p {
 
 
 
+
+
+
+/* tarteaucitron toast custom styles */
+#tarteaucitronRoot {
+    --bg-color: #fff;
+    --text-color: #000;
+    --hover-color: var(--color-black);
+    --font: "Dean Gothic", sans-serif;
+    --font-secondary: "Silvana Regular Italic", serif;
+    --font-size: 2.4rem;
+    --letter-spacing: 0.028em;
+    --border: 1px solid #00000014;
+    --text-transform: initial;
+    --alert-width: calc(100vw - 2rem);
+    --alert-height: auto;
+    --alert-padding: 2rem;
+    --panel-title-size: 3rem;
+    --panel-border: 1px solid var(--color-black);
+    --button-text-transform: uppercase;
+}
+
+#tarteaucitronRoot * {
+    transition: border 300ms, background 300ms, opacity 200ms, box-shadow 400ms;
+}
+
+@media (min-width: 768px) {
+    #tarteaucitronRoot {
+        --alert-width: 32rem;
+    }
+}
+
+
+ #tarteaucitronAlertBig {
+    /* intial state */
+    display: none;
+    opacity: 0;
+
+    /* positon and dimnesions */
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    z-index: 9;
+    width:  var(--alert-width);
+    min-height: var(--alert-height); 
+
+    box-sizing: content-box;
+    padding: 1.5rem 2rem;
+    margin: auto;
+
+    /* inner content */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 1rem;
+
+    font-size: 15px ;
+    text-align: center;
+
+    border: var(--border);
+    background-color: var(--bg-color);    
+}
+
+
+#tarteaucitronDisclaimerAlert {
+    color: var(--text-color) ;
+    letter-spacing: var(--letter-spacing) ;
+    line-height: 100% ;
+    padding: 0 ;
+    z-index: 1;
+    text-align: left;
+
+    flex: 1;
+
+    font-family: var(--font);
+    font-size: 2.4rem;
+    margin-right: 1rem;
+    order: 1;
+}
+
+
+#tarteaucitronPersonalize2 {
+    background-color: initial ;
+    font-family: var(--font-secondary);
+    font-size: 1.6rem;
+    font-style: italic;
+    order: 2;
+    transition: opacity .5s var(--ease-out);
+}
+
+#tarteaucitronCloseAlert {
+    font-family: var(--font-secondary);
+    font-size: 1.6rem;
+    font-style: italic;
+    letter-spacing: var(--letter-spacing);
+    line-height: 100%;
+    opacity: .3;
+    order: 3;
+    position: relative;
+    transition: opacity .5s var(--ease-out);
+    color: #333;
+}
+#tarteaucitronCloseAlert:hover {
+    opacity: 1;
+}

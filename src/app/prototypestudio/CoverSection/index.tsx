@@ -102,9 +102,6 @@ const CoverAnimatedContent = () => <div className="relative grid-w content-end h
 function HomeCoverSection() {
     const sectionRef = useRef<HTMLElement>(null);
     const animationRef = useRef<HomeCoverAnimation | null>(null);
-    const [animateAppear, setAnimateAppear] = useState(false);
-
-
 
     useEffect(() => {
         if (!sectionRef.current) return;

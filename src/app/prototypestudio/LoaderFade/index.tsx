@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { CustomEventsPayloads } from "./types";
+import { CustomEventsPayloads } from "../types";
 
 function LoaderFade() {
     const fadeRef = useRef<HTMLDivElement>(null)
+    
     useEffect(() => {
         if (!fadeRef.current) return;
 

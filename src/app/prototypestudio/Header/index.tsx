@@ -3,9 +3,8 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import HeaderExpandingText, {
     HeaderExpandingTextRef,
-} from "./HeaderExpandingLink";
+} from "../HeaderExpandingLink";
 
-import "./style.css";
 
 const items = [
     {

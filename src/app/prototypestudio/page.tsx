@@ -1,11 +1,12 @@
 "use client";
-import Header from "./header";
+import Header from "./Header";
 import "./style.css";
 
 import { CustomEase } from "gsap/CustomEase";
 import { gsap } from "gsap";
 import HomeCoverSection from "./CoverSection";
 import LoaderFade from "./LoaderFade";
+import TarteAuCitronToast from "./TarteAuCitronToast";
 
 gsap.registerPlugin(CustomEase);
 
@@ -28,6 +29,7 @@ function PrototypeStudio() {
         <>
             <Header />
             <LoaderFade />
+            <TarteAuCitronToast />
             <div className="main content">
                 <div className="home h-screen flex justify-center items-center">
                     <HomeCoverSection />
