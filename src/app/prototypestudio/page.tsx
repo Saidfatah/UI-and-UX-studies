@@ -1,5 +1,5 @@
 "use client";
-import Header from "./Header";
+import Header, { HeaderRefProps } from "./Header";
 import "./styles/style.css";
 
 import { CustomEase } from "gsap/CustomEase";
@@ -31,6 +31,8 @@ CustomEase.create(
 function PrototypeStudio() {
     const mainRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+
+    const headerRef = useRef<HeaderRefProps>(null);
 
     const lenisRef = useRef<Lenis | null>(null);
 
@@ -65,13 +67,30 @@ function PrototypeStudio() {
     }, []);
 
 
+    useEffect(() => {
+        ScrollTrigger.create({
+            trigger: ".home-cover",
+            scroller: mainRef.current,
+            start: "top -97%",
+            markers:false,
+            onEnter: () => {
+                headerRef.current?.setDarkMenu();
+            }
+            ,
+            onLeaveBack: () => {
+                headerRef.current?.setLightMenu();
+                
+            }
+        })
+    }, [headerRef]);
+
 
     return (
         <>
-            <Header />
+            <Header HeaderRefProps={headerRef} />
             <LoaderFade />
             <TarteAuCitronToast />
-            
+
             <div
                 ref={mainRef}
                 className="main"

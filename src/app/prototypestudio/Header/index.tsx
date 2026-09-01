@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useImperativeHandle, useRef } from "react";
 import { gsap } from "gsap";
 import HeaderExpandingText, {
     HeaderExpandingTextRef,
@@ -27,87 +27,128 @@ const items = [
     },
 ];
 
-function Header() {
-    const itemRefs = useRef<(HeaderExpandingTextRef | null)[]>([]);
-    const itemElementsRefs = useRef<(HTMLElement | null)[]>([]);
 
-    const handleEnter = (index: number) => {
 
-        const width = itemRefs.current[index]?.getHoverWidth() ?? 0;
+export type HeaderRefProps = {
+    setLightMenu: () => void,
+    setDarkMenu: () => void,
+}
+type Props = {
+    HeaderRefProps: React.RefObject<HeaderRefProps>
+}
+    function Header({ HeaderRefProps }: Props) {
+        const headerRef = useRef<HTMLDivElement>(null);
+        const itemRefs = useRef<(HeaderExpandingTextRef | null)[]>([]);
+        const itemElementsRefs = useRef<(HTMLElement | null)[]>([]);
 
-        const tl = gsap.timeline({
-            defaults: {
-                duration: 0.8,
-                ease: "expo.out",
-            },
-        });
+        const handleEnter = (index: number) => {
 
-        items.forEach((_, i) => {
-            if (i === index) return;
+            const width = itemRefs.current[index]?.getHoverWidth() ?? 0;
 
-            const ref = itemRefs.current[i];
-            const elementRef = itemElementsRefs.current[i];
-
-            if (!ref || !elementRef) return;
-            // Every item gets its new position
-            tl.to(
-                elementRef,
-                {
-                    x: i <= index ? -width : 0,
+            const tl = gsap.timeline({
+                defaults: {
+                    duration: 0.8,
+                    ease: "expo.out",
                 },
-                0
-            );
+            });
 
-            // Every non-hovered item hides its text
-            ref.hide();
-        });
+            items.forEach((_, i) => {
+                if (i === index) return;
 
-        const ref = itemRefs.current[index];
-        const elementRef = itemElementsRefs.current[index];
+                const ref = itemRefs.current[i];
+                const elementRef = itemElementsRefs.current[i];
 
-        if (!ref || !elementRef) return;
+                if (!ref || !elementRef) return;
+                // Every item gets its new position
+                tl.to(
+                    elementRef,
+                    {
+                        x: i <= index ? -width : 0,
+                    },
+                    0
+                );
 
-        // Hovered item reveals its characters
-        tl.to(
-            elementRef,
-            {
-                x: -width,
-            },
-            0
-        );
-        ref.reveal();
-    };
+                // Every non-hovered item hides its text
+                ref.hide();
+            });
 
-    const handleLeave = () => {
-        const tl = gsap.timeline({
-            defaults: {
-                duration: 0.8,
-                ease: "expo.out",
-            },
-        });
-
-        items.forEach((_, i) => {
-            const ref = itemRefs.current[i];
-            const elementRef = itemElementsRefs.current[i];
+            const ref = itemRefs.current[index];
+            const elementRef = itemElementsRefs.current[index];
 
             if (!ref || !elementRef) return;
 
+            // Hovered item reveals its characters
             tl.to(
                 elementRef,
                 {
-                    x: 0,
+                    x: -width,
                 },
                 0
             );
+            ref.reveal();
+        };
 
-            ref.hide();
-        });
-    };
+        const handleLeave = () => {
+            const tl = gsap.timeline({
+                defaults: {
+                    duration: 0.8,
+                    ease: "expo.out",
+                },
+            });
 
-    return (
-        <header
+            items.forEach((_, i) => {
+                const ref = itemRefs.current[i];
+                const elementRef = itemElementsRefs.current[i];
+
+                if (!ref || !elementRef) return;
+
+                tl.to(
+                    elementRef,
+                    {
+                        x: 0,
+                    },
+                    0
+                );
+
+                ref.hide();
+            });
+        };
+
+        const menuCssVariablesWhiteBg = {
+            'border-color': 'transparent',
+            'background-color': 'transparent',
+            '--menu-color': '#fff'
+        }
+
+        useImperativeHandle(HeaderRefProps, () => ({
+            setLightMenu: () => {
+                console.log("setLightMenu");
+                gsap.to(headerRef.current, {
+                    "--menu-color": "#fff",
+                    backgroundColor: "transparent",
+                    borderColor: "transparent",
+                    ease: "beaucoup.alpha",
+                    duration: .25
+                })
+            },
+            setDarkMenu: () => {
+                console.log("setDarkMenu");
+                gsap.to(headerRef.current, {
+                    "--menu-color": "#000",
+                    backgroundColor: "#fff",
+                    borderColor: "rgb(0, 0, 0, 0.08)",
+                    ease: "beaucoup.alpha",
+                    duration: .4
+                })
+            }
+        }), []);
+
+
+        return (
+            <header
+                ref={headerRef}
             className="deanGothic body-24 header fixed top-0 left-0 grid-w items-center w-full h-header border-b-px border-transparent z-header"
-            style={{ '--menu-color': '#fff' } as React.CSSProperties}
+            style={menuCssVariablesWhiteBg as React.CSSProperties}
         >
             <div className="col-span-2">
                 <a
@@ -192,19 +233,19 @@ function Header() {
                     </div>
 
                     <div className="header-socials list-o flex justify-end gap-x-[0.2rem]">
-                        <a 
-                            href="https://www.instagram.com/__prototypestudio/" 
-                            target="_blank" 
-                            rel="noopener" 
+                        <a
+                            href="https://www.instagram.com/__prototypestudio/"
+                            target="_blank"
+                            rel="noopener"
                             className="list-o-item !transition-opacity !duration-smooth !ease-out"
                         >
                             IG
                         </a>
                         <span className="">/</span>
-                        <a 
-                            href="https://www.youtube.com/@prototypestudio8117" 
-                            target="_blank" 
-                            rel="noopener" 
+                        <a
+                            href="https://www.youtube.com/@prototypestudio8117"
+                            target="_blank"
+                            rel="noopener"
                             className="list-o-item !transition-opacity !duration-smooth !ease-out"
                         >
                             YT
