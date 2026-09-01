@@ -2,9 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import "./style.css";
+import { images_for_ASCI, shuffleArray, wait } from "./utils";
+import { random } from "gsap";
 
 
-const ASCII_CHARS = "... ... .. :;o =+*#%SaId@01997";
+type ImageEffectData = {
+    asciiGrid: string[][];
+    brightnessGrid: number[][];
+};
+
+
+
+const ASCII_CHARS = "... .. . .. :;o VHau%0v";
 const FONT_SIZE = 14;
 const ASPECT_WIDTH = 4;
 const ASPECT_HEIGHT = 5;
@@ -12,12 +21,13 @@ const ASCII_COLUMNS = 40;
 
 const IMAGE_STAGGER = 25;
 const CELL_APPEAR_MS = 2;
-const SCRAMBLE_COUNT = 10;
+const SCRAMBLE_COUNT = 5;
 const SCRAMBLE_SPEED_MS = 100;
 const REAVL_DELAY_MS = 25;
 
 const denseCharIndex = ASCII_CHARS.split('').lastIndexOf('.');
 const denseChars = ASCII_CHARS.slice(0, denseCharIndex + 1).split('');
+const lightChars = ASCII_CHARS.slice(denseCharIndex + 1).split('');
 
 
 // calc with ahd height of chars 
@@ -30,7 +40,6 @@ const ASCII_ROWS = Math.round(
 );
 
 
-
 function prepareCanvas(canvas: HTMLCanvasElement) {
     // keep cnavas looking sharp 
     const dpr = 2;
@@ -40,7 +49,7 @@ function prepareCanvas(canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#111";
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -50,22 +59,19 @@ const drawCharatcer = (ctx: CanvasRenderingContext2D, col: number, row: number, 
     ctx.fillRect(col * charWidth, row * charHeight, charWidth, charHeight);
 
     // then print the text
-    ctx.fillStyle = "#c8c8c8";
+    ctx.fillStyle = `rgba(256,256,256,1.0)`;
     ctx.fillText(char, col * charWidth, row * charHeight);
 }
 
-function shuffleArray(array: number[]) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array
-}
 
 const schduleImageReveal = (canvas: HTMLCanvasElement) => {
     setTimeout(() => {
         canvas.closest('.img')?.classList.add('revealed');
     }, REAVL_DELAY_MS);
+}
+
+const hideImageANdSHowCanvas = (canvas: HTMLCanvasElement) => {
+    canvas.closest('.img')?.classList.remove('revealed');
 }
 
 
@@ -81,6 +87,7 @@ function animateCells(canvas: HTMLCanvasElement, asciiGrid: string[][], brightne
     ctx.textBaseline = "top";
 
     const totalCells = ASCII_COLUMNS * ASCII_ROWS;
+
     const scrambleState = new Array(totalCells).fill(null);
     let settledCount = 0;
 
@@ -88,8 +95,7 @@ function animateCells(canvas: HTMLCanvasElement, asciiGrid: string[][], brightne
         Array.from({ length: totalCells }, (_, i) => i),
     )
 
-
-    // render the cells 
+    // this renders all cels as less dense characters first
     cellorder.forEach((cellIndex, i) => {
         setTimeout(() => {
             const row = Math.floor(cellIndex / ASCII_COLUMNS);
@@ -122,7 +128,8 @@ function animateCells(canvas: HTMLCanvasElement, asciiGrid: string[][], brightne
 
 
     // idle effectscrambler ticker , on fixed interval this runs after the 
-    // this skipps any cells tha tare not cettled 
+    // this skipps any cells tha tare not cettled
+
     const scramberTicker = setInterval(() => {
         let stillScrambling = false;
 
@@ -166,7 +173,138 @@ function animateCells(canvas: HTMLCanvasElement, asciiGrid: string[][], brightne
 }
 
 
-const imageToAsGrid = (img: HTMLImageElement) => {
+
+const renderRow = (
+    ctx: CanvasRenderingContext2D,
+    row: number,
+    asciiGrid: string[][],
+    brightnessGrid: number[][],
+) => {
+    const scrambleState = new Array(ASCII_COLUMNS).fill(0);
+
+    for (let col = 0; col < ASCII_COLUMNS; col++) {
+        const isDark = brightnessGrid[row][col] > denseCharIndex;
+
+        if (!isDark) {
+            drawCharatcer(ctx, col, row, asciiGrid[row][col]);
+
+            // Already settled.
+            scrambleState[col] = 0;
+        } else {
+            drawCharatcer(ctx, col, row, denseChars[Math.floor(Math.random() * denseChars.length)]);
+
+            // Needs to scramble.
+            scrambleState[col] = SCRAMBLE_COUNT;
+        }
+    }
+
+    return scrambleState;
+};
+
+
+const tickScrambleRow = (
+    ctx: CanvasRenderingContext2D,
+    row: number,
+    asciiGrid: string[][],
+    scrambleState: number[],
+) => {
+    let stillScrambling = false;
+
+    for (let col = 0; col < ASCII_COLUMNS; col++) {
+        const remaining = scrambleState[col];
+
+        if (remaining === 0) {
+            continue;
+        }
+
+        stillScrambling = true;
+
+        if (remaining === 1) {
+            drawCharatcer(
+                ctx,
+                col,
+                row,
+                asciiGrid[row][col],
+            );
+
+            scrambleState[col] = 0;
+        } else {
+            drawCharatcer(
+                ctx,
+                col,
+                row,
+                ASCII_CHARS[Math.floor(Math.random() * ASCII_CHARS.length)],
+            );
+
+            scrambleState[col] = remaining - 1;
+        }
+    }
+
+    return stillScrambling;
+};
+
+
+async function animateCellsRowByRow(
+    canvas: HTMLCanvasElement,
+    asciiGrid: string[][],
+    brightnessGrid: number[][],
+    staggerDelay: number,
+) {
+    const dpr = 2;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    ctx.font = `${charHeight}px monospace`;
+    ctx.textBaseline = "top";
+
+    for (let row = 0; row < ASCII_ROWS; row++) {
+
+        // --------------------------------
+        // 1. INITIAL RENDER
+        // --------------------------------
+
+        const scrambleState = renderRow(
+            ctx,
+            row,
+            asciiGrid,
+            brightnessGrid,
+        );
+
+        // --------------------------------
+        // 2. SCRAMBLE TICKER
+        // --------------------------------
+
+        while (true) {
+            await wait(5);
+
+            const stillScrambling = tickScrambleRow(
+                ctx,
+                row,
+                asciiGrid,
+                scrambleState,
+            );
+
+            if (!stillScrambling) {
+                break;
+            }
+        }
+
+        // --------------------------------
+        // 3. ROW IS FINISHED
+        // --------------------------------
+
+        await wait(10);
+    }
+
+    // All rows finished.
+    schduleImageReveal(canvas);
+}
+
+const imageAsGrid = (img: HTMLImageElement) => {
     const imageAspect = img.naturalWidth / img.naturalHeight;
     const itemAspect = ASPECT_WIDTH / ASPECT_HEIGHT;
 
@@ -254,40 +392,46 @@ const imageToAsGrid = (img: HTMLImageElement) => {
     }
 }
 
+function startEffect(
+    img: HTMLImageElement,
+    canvas: HTMLCanvasElement,
+    staggerDelay: number
+) {
+    const result = imageAsGrid(img);
 
-function startEffect(img: HTMLImageElement, canvas: HTMLCanvasElement, staggerDelay: number) {
-    const result = imageToAsGrid(img);
-    if (!result) return;
+    if (!result) return null;
+
     const { asciiGrid, brightnessGrid } = result;
+
     prepareCanvas(canvas);
     animateCells(canvas, asciiGrid, brightnessGrid, staggerDelay);
-}
-function ASCIImageReveal() {
-    const images = [
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-        "/images/saidFatahImage.jpeg",
-    ];
+    // animateCellsRowByRow(canvas, asciiGrid, brightnessGrid, staggerDelay);
 
+    return { asciiGrid, brightnessGrid };
+}
+
+function ASCIImageReveal() {
+    const effectsRefs = useRef<(ImageEffectData | null)[]>([]);
     const imagesRefs = useRef<(HTMLImageElement | null)[]>([]);
+    const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
 
     useEffect(() => {
         imagesRefs.current.forEach((img, index) => {
-            if (!img) return;
 
-            const canvas = document.createElement("canvas");
+            const canvas = canvasRefs.current[index];
+
+            if (!img) return;
+            if (!canvas) return;
+
             const staggerDelay = index * IMAGE_STAGGER;
 
             const onLoaded = () => {
-                startEffect(img, canvas, staggerDelay);
-            };
+                const effectData = startEffect(img, canvas, staggerDelay);
 
-            img.closest(".img")?.appendChild(canvas);
+                if (effectData) {
+                    effectsRefs.current[index] = effectData;
+                }
+            };
 
             if (img.complete && img.naturalWidth) {
                 onLoaded();
@@ -298,21 +442,28 @@ function ASCIImageReveal() {
     }, []);
 
     return (
-        <div className="container flex h-screen w-screen items-center justify-center bg-black">
-            <section className="gallery">
-                {images.map((src, index) => (
-                    <div className="img" key={index}>
+        <div className=" flex h-screen w-screen items-center justify-center bg-black">
+                {images_for_ASCI.map((src, index) => (
+                    <div className="img flex justify-center " key={index}>
                         <img
                             ref={(el) => {
                                 imagesRefs.current[index] = el;
                             }}
+
+
                             className="ascii-reveal"
                             src={src}
                             alt=""
                         />
+
+                        <canvas
+                            ref={(el) => {
+                                canvasRefs.current[index] = el;
+                            }}
+                        />
+
                     </div>
                 ))}
-            </section>
         </div>
     );
 }

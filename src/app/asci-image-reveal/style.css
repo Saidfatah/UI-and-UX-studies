@@ -21,10 +21,9 @@ body{
 
 .img{
     position: relative;
-    width: 100%;
+    width: 280px;
     aspect-ratio: 4/5;
     align-self: center;
-    overflow: hidden;
 }
 
 .img img{
@@ -44,12 +43,8 @@ position: absolute;
     height: 100%;
 }
 
-
-.img:nth-child(1) img{
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-}
-
+ 
+/* 
 
 .img:nth-child(2) img{
     grid-column: 2 / 3;
@@ -84,15 +79,18 @@ position: absolute;
 .img:nth-child(8) img{
     grid-column: 8 / 9;
     grid-row: 2 / 3;
-}
+} */
 
 
 .img.revealed canvas{
     /* display: none; */
-    animation: fadeout 2s cubic-bezier(0.83, 0, 0.17, 1) forwards;
+    animation: fadeout 5s  cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .img.revealed img{
     display: block;
+    opacity: 0;
+    filter: invert(1) grayscale(1);
+    animation: fadeIn 1s 0.5s ease-in forwards;
 }
 
 
@@ -106,6 +104,58 @@ position: absolute;
             filter: invert(1) ;
        /* mix-blend-mode: difference; */
 
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        filter: invert(1) grayscale(1);
+        opacity: 0;
+    }
+    25% {
+        filter: invert(1) grayscale(1);
+        opacity: 1;
+    }
+    30% {
+        filter: invert(1) grayscale(1);
+        opacity: 0;
+    }
+    40% {
+        filter: invert(0) grayscale(1);
+        opacity: 1;
+    }
+    50% {
+        filter: invert(1) grayscale(1);
+        opacity: 0;
+    }
+    60% {
+        filter: invert(1) grayscale(1);
+        opacity: 1;
+    }
+
+    70% {
+        filter: invert(1) grayscale(1);
+        opacity: 0;
+    }
+    75% {
+        filter: invert(1) grayscale(1);
+        opacity: 1;
+    }
+    80% {
+    filter: invert(-1) grayscale(1);
+        opacity: 0;
+    }
+    90% {
+    filter: invert(0) grayscale(1);
+        opacity: 1;
+    }
+    95% {
+    filter: invert(1) grayscale(1);
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        filter: invert(0) grayscale(1);
     }
 }
  
