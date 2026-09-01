@@ -148,8 +148,7 @@ video {
     position: fixed;
 }
 
-
-
+    
 
 .main {
     height: 100%;
@@ -159,6 +158,18 @@ video {
 
 .font-heading {
     font-family: Silvana Light Italic, serif;
+}
+
+.deanGothic {
+    font-family: 'Dean Gothic', sans-serif !important;
+}
+
+.silvanaLightItalic {
+    font-family: 'Silvana Light Italic', sans-serif !important;
+}
+
+.silvanaRegular {
+    font-family: 'Silvana Regular', sans-serif !important;
 }
 
 .body-16 {
@@ -224,18 +235,6 @@ video {
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.deanGothic {
-    font-family: 'Dean Gothic', sans-serif !important;
-}
-
-.silvanaLightItalic {
-    font-family: 'Silvana Light Italic', sans-serif !important;
-}
-
-.silvanaRegular {
-    font-family: 'Silvana Regular', sans-serif !important;
-}
-
 
 .header-items:hover .header-item{
     opacity: 0.2;
@@ -252,13 +251,6 @@ video {
     opacity: 1 !important;
 }
 
-
-.transition-opacity {
-    transition-duration: .15s;
-    transition-property: opacity;
-    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
-}
-
 .list-o .list-o-item {
     pointer-events: auto;
     transition-duration: .6s;
@@ -266,6 +258,18 @@ video {
     transition-timing-function: cubic-bezier(.4, 0, .2, 1);
     transition-timing-function: cubic-bezier(.23, 1, .32, 1);
 }
+
+.list-o {
+    pointer-events: none;
+}
+
+
+.transition-opacity {
+    transition-duration: .15s;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
 
 .duration-smooth {
     transition-duration: .6s;
@@ -294,9 +298,6 @@ video {
 
 
 
-.list-o {
-    pointer-events: none;
-}
 
 .grid-w {
     -moz-column-gap: var(--padding-container);
