@@ -56,6 +56,12 @@
 }
  
 
+*, :after, :before {
+    border-color: rgb(var(--color-black) / 8%);
+    border-style: solid;
+    border-width: 0;
+    box-sizing: border-box;
+}
 
 html {
     /* this used to make the website's font size dynamic and basic on breaking points */
@@ -64,27 +70,6 @@ html {
 
 }
 
-
-@media (min-width: 768px) {
-    :root {
-        --size: 768;
-        --padding-container: 2rem;
-        --header-height: 5.5rem;
-    }
-}
-
-@media (min-width: 1024px) {
-    :root {
-        --size: 1024;
-    }
-}
-
-
-@media (min-width: 1200px) {
-    :root {
-        --size: 1440;
-    }
-}
 
 
 
@@ -112,6 +97,16 @@ body {
 
 p {
     margin: 0;
+}
+
+img, video {
+    height: auto;
+    max-width: 100%;
+}
+
+video {
+    display: block;
+    vertical-align: middle;
 }
 
 
@@ -162,7 +157,7 @@ p {
 
 
 .font-heading {
-    font-family: SilvanaDisplay, serif;
+    font-family: Silvana Light Italic, serif;
 }
 
 .body-16 {
@@ -180,6 +175,11 @@ p {
     line-height: 100%;
 }
 
+.body-45 {
+    font-size: 4.5rem;
+    line-height: 100%;
+}
+
 .pb-15 {
     padding-bottom: 1.5rem;
 }
@@ -188,6 +188,30 @@ p {
     margin-top: 1.5rem;
 }
 
+.pt-container {
+    padding-top: var(--padding-container);
+}
+
+.pr-container {
+        padding-right: var(--padding-container);
+}
+
+.absolute-full {
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.absolute-center {
+    --tw-translate-x: -50%;
+    --tw-translate-y: -50%;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
 
 .deanGothic {
     font-family: 'Dean Gothic', sans-serif !important;
@@ -274,13 +298,7 @@ p {
 }
 
 
-@media (min-width: 768px) {
-    .grid-w {
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-}
-
-
+ 
 
 .home-cover-title .word {
     perspective: 500px;
@@ -317,7 +335,7 @@ p {
 
 .title em {
     display: block;
-    font-family: SilvanaDisplay, serif;
+    font-family: Silvana Regular, serif;
     font-size: 3rem;
     font-style: italic;
     font-weight: 300;
@@ -326,13 +344,7 @@ p {
     text-transform: lowercase;
 }
 
-@media (min-width: 768px) {
-    .title em {
-        font-size: 5rem;
-        line-height: 100%;
-    }
-}
-
+ 
 
 
 
@@ -361,11 +373,6 @@ p {
     transition: border 300ms, background 300ms, opacity 200ms, box-shadow 400ms;
 }
 
-@media (min-width: 768px) {
-    #tarteaucitronRoot {
-        --alert-width: 32rem;
-    }
-}
 
 
  #tarteaucitronAlertBig {
@@ -439,4 +446,43 @@ p {
 }
 #tarteaucitronCloseAlert:hover {
     opacity: 1;
+}
+
+
+
+@media (min-width: 768px) {
+    * {
+        --size: 768;
+        --padding-container: 2rem;
+        --header-height: 5.5rem;
+    }
+
+    #tarteaucitronRoot {
+        --alert-width: 32rem;
+    }
+
+    .title em {
+        font-size: 5rem;
+        line-height: 100%;
+    }
+
+    .grid-w {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+}
+
+
+
+@media (min-width: 1024px) {
+    :root {
+        --size: 1024;
+    }
+}
+
+
+@media (min-width: 1200px) {
+    :root {
+        --size: 1440;
+    }
 }
