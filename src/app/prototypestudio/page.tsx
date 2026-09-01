@@ -11,7 +11,7 @@ import TarteAuCitronToast from "./TarteAuCitronToast";
 import ManifiestoSection from "./ManifiestoSection";
 
 import Lenis from "lenis";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
@@ -72,18 +72,23 @@ function PrototypeStudio() {
             trigger: ".home-cover",
             scroller: mainRef.current,
             start: "top -97%",
-            markers:false,
+            markers: false,
             onEnter: () => {
                 headerRef.current?.setDarkMenu();
             }
             ,
             onLeaveBack: () => {
                 headerRef.current?.setLightMenu();
-                
+
             }
         })
     }, [headerRef]);
 
+    const manfiesRef = useRef<HTMLDivElement>(null);
+    const scrollToManfiestoSection = useCallback(() => {
+        if (!manfiesRef.current) return;
+        lenisRef.current?.scrollTo(manfiesRef.current);
+    }, [lenisRef]);
 
     return (
         <>
@@ -99,8 +104,10 @@ function PrototypeStudio() {
                     ref={contentRef}
                     className="home"
                 >
-                    <HomeCoverSection />
-                    <ManifiestoSection scrollerRef={mainRef} />
+                    <HomeCoverSection onScrollClick={scrollToManfiestoSection} />
+                    <div ref={manfiesRef}>
+                        <ManifiestoSection scrollerRef={mainRef} />
+                    </div>
                 </div>
             </div>
         </>

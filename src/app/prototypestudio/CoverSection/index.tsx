@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import HomeCoverAnimation from "./HomeCoverAnimation";
 import { initialStates } from "./cover.section.utils";
 
 
-const CoverAnimatedContent = () => <div className="relative grid-w content-end h-full z-1">
+const CoverAnimatedContent = ({ onScrollClick }: { onScrollClick: () => void }) => <div className="relative grid-w content-end h-full z-1">
     <div className="col-span-full flex justify-center mb-10">
         <h1 className="home-cover-title title">
             <p>
@@ -87,7 +87,7 @@ const CoverAnimatedContent = () => <div className="relative grid-w content-end h
         className="home-cover-line col-span-full h-px bg-white/25 origin-center"
     />
 
-    <div className="col-span-full flex justify-center mt-15">
+    <div onClick={onScrollClick} className="col-span-full flex justify-center mt-15">
         <div className="home-cover-scroll body-20 italic font-heading cursor-pointer">
             <span style={initialStates.scrollText} className="char">S</span>
             <span style={initialStates.scrollText} className="char">c</span>
@@ -99,7 +99,7 @@ const CoverAnimatedContent = () => <div className="relative grid-w content-end h
     </div>
 </div>
 
-function HomeCoverSection() {
+function HomeCoverSection({ onScrollClick }: { onScrollClick: () => void }) {
     const sectionRef = useRef<HTMLElement>(null);
     const animationRef = useRef<HomeCoverAnimation | null>(null);
 
@@ -125,6 +125,8 @@ function HomeCoverSection() {
         };
     }, []);
 
+
+
     return (
         <section
             ref={sectionRef}
@@ -143,7 +145,7 @@ function HomeCoverSection() {
 
                 <div className="absolute-full bg-black/30" />
             </div>
-            <CoverAnimatedContent />
+            <CoverAnimatedContent onScrollClick={onScrollClick} />
         </section>
     );
 }
