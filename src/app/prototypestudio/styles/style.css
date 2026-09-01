@@ -88,6 +88,45 @@ body, html{
     overflow: hidden;
 }
 
+
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto!important
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain
+}
+
+@media not all and (min-width: 1200px) {
+    .lenis.lenis-stopped {
+        overflow:hidden
+    }
+}
+
+@media (min-width: 1024px) {
+    .lenis::-webkit-scrollbar {
+        width:5px;
+        
+    }
+}
+
+.lenis::-webkit-scrollbar-track {
+    background-color: #fff
+}
+
+.lenis::-webkit-scrollbar-thumb {
+    background-color: #000;
+    border: 1px solid #000;
+}
+
+html.lenis {
+    height: auto
+}
+
+
+
+
 body {
     line-height: inherit;
     margin: 0;
