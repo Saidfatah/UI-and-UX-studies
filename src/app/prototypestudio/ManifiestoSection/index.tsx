@@ -1,0 +1,139 @@
+import { useEffect, useRef } from "react";
+
+function ManifiestoSection() {
+    const circleRef = useRef<HTMLDivElement>(null);
+    const circleLineRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const circle = circleRef.current;
+        const circleLine = circleLineRef.current;
+
+        if (!circle || !circleLine) return;
+
+        const positionLine = (angle: number) => {
+            const radians = (angle - 90) * (Math.PI / 180);
+
+            const radius = circle.offsetWidth / 2;
+            const centerX = circle.offsetWidth / 2;
+            const centerY = circle.offsetHeight / 2;
+
+            // to make sure ittouches teh circle from outside we subtract 1.5 
+            const left = Math.cos(radians) * radius + centerX - 1.5;
+            const top = Math.sin(radians) * radius + centerY - 1.5;
+
+            circleLine.style.left = `${left}px`;
+            circleLine.style.top = `${top}px`;
+        };
+
+        positionLine(-30);
+
+        window.addEventListener("resize", () => positionLine(-30));
+
+        return () => {
+            window.removeEventListener("resize", () => positionLine(-30));
+        };
+    }, [circleRef, circleLineRef]);
+
+    return (
+        <section className="manifesto pb-[26.5rem] overflow-hidden">
+            <div className="border-b-px">
+                <div className="grid-w relative">
+                    <div className="col-span-4 h-full  border-r-[1px]" />
+
+                    <div className="col-span-7 pt-[23.5rem] pb-12">
+                        <h2 className="body-45 font-heading font-light italic" data-animation="titleWords">
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >Prototype</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >is</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >creative-driven</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >hybrid</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >structure,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >one-stop</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >shop,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >from</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >ideas</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >to</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >execution.</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >We</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >are</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >not</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >just</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >production</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >house,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >we</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >are</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >an</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >agency,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >design</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >studio,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >and</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >digital</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >factory</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >all</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >in</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >one</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >place.</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >A</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >place</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >where</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >brands</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >can</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >be</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >more</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >authentic,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >bold,</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >and</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >rise</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >above</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >the</span> {" "}
+                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >crowd.</span> {" "}
+                        </h2>
+                    </div>
+                    <div
+                        ref={circleRef}
+                        className="circle absolute  bottom-0 right-0 w-[46.8rem] h-[46.8rem] border rounded-full pointer-events-none"
+                    >
+                        <div
+                            ref={circleLineRef}
+                            className="circle-line w-[2px] h-[2px] bg-blue-500 absolute "
+                        >
+                            <div className="absolute top-0 z-[-1] left-0 w-[200vw] h-px bg-red-400 -translate-x-1/2 -rotate-[30deg]" />
+                        </div>
+
+                        <div className="absolute-center -translate-x-1/2 -translate-y-1/2">
+                            <div className="absolute top-0 left-0 w-[200vw] h-px bg-red-300 -translate-x-1/2 -rotate-[24deg]" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div className="grid-w relative">
+                <div className="relative col-span-4 pr-container  pt-container  pb-40  border-r ">
+                    <div className="relative w-full h-0 pt-[56.25%] ">
+                        <div className="absolute-full">
+                            <video
+                                className="simple-video w-full h-full object-cover"
+                                data-src="/videos/prototype-showreel-about.mp4"
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                src="/videos/prototype-showreel-about.mp4">
+                            </video>
+                        </div>
+                    </div>
+                    <div className="absolute bottom-0 right-0 -rotate-[10deg]">
+                        <div className="absolute left-1/2 -translate-x-1/2 w-[200vw] h-px bg-red-300"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+export default ManifiestoSection;

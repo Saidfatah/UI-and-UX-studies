@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import HomeCoverSection from "./CoverSection";
 import LoaderFade from "./LoaderFade";
 import TarteAuCitronToast from "./TarteAuCitronToast";
+import ManifiestoSection from "./ManifiestoSection";
 
 gsap.registerPlugin(CustomEase);
 
@@ -31,8 +32,9 @@ function PrototypeStudio() {
             <LoaderFade />
             <TarteAuCitronToast />
             <div className="main content">
-                <div className="home h-screen flex justify-center items-center">
+                <div className="home ">
                     <HomeCoverSection />
+                    <ManifiestoSection />
                 </div>
             </div>
         </>
