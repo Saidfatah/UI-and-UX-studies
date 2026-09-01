@@ -1,6 +1,6 @@
 "use client";
 import Header from "./Header";
-import "./style.css";
+import "./styles/style.css";
 
 import { CustomEase } from "gsap/CustomEase";
 import { gsap } from "gsap";
