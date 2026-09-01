@@ -5,10 +5,10 @@ import "./styles/style.css";
 import { CustomEase } from "gsap/CustomEase";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import HomeCoverSection from "./CoverSection";
+import HomeCoverSection from "./sections/CoverSection";
 import LoaderFade from "./LoaderFade";
 import TarteAuCitronToast from "./TarteAuCitronToast";
-import ManifiestoSection from "./ManifiestoSection";
+import ManifiestoSection from "./sections/ManifiestoSection";
 
 import Lenis from "lenis";
 import { useCallback, useEffect, useRef } from "react";
