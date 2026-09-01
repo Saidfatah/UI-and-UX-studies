@@ -1,0 +1,6 @@
+.media {
+  img {
+    width: 100%;
+    visibility: hidden;
+  }
+}
