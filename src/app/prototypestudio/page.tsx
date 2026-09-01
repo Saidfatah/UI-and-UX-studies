@@ -9,6 +9,10 @@ import LoaderFade from "./LoaderFade";
 import TarteAuCitronToast from "./TarteAuCitronToast";
 import ManifiestoSection from "./ManifiestoSection";
 
+import Lenis from "lenis";
+import { useEffect, useRef } from "react";
+
+
 gsap.registerPlugin(CustomEase);
 
 CustomEase.create("beaucoup.alpha", ".25, .46, .45, .9");
@@ -24,6 +28,37 @@ CustomEase.create(
 );
 
 function PrototypeStudio() {
+    const mainRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    const lenisRef = useRef<Lenis | null>(null);
+
+    useEffect(() => {
+        if (!mainRef.current || !contentRef.current) return;
+
+        const lenis = new Lenis({
+            wrapper: mainRef.current,
+            content: contentRef.current,
+        });
+
+        lenisRef.current = lenis;
+
+        let animationFrame: number;
+
+        function raf(time: number) {
+            lenis.raf(time);
+            animationFrame = requestAnimationFrame(raf);
+        }
+
+        animationFrame = requestAnimationFrame(raf);
+
+        return () => {
+            cancelAnimationFrame(animationFrame);
+            lenis.destroy();
+            lenisRef.current = null;
+        };
+    }, []);
+
 
 
     return (
@@ -31,8 +66,15 @@ function PrototypeStudio() {
             <Header />
             <LoaderFade />
             <TarteAuCitronToast />
-            <div className="main content">
-                <div className="home ">
+            
+            <div
+                ref={mainRef}
+                className="main"
+            >
+                <div
+                    ref={contentRef}
+                    className="home"
+                >
                     <HomeCoverSection />
                     <ManifiestoSection />
                 </div>
