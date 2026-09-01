@@ -9,5 +9,8 @@ export const initialStates = {
     scrollText:{
         transform: "translateX(5rem)",
         opacity: 0,
+    },
+    manfiestoWords:{
+        opacity: 0,
     }
 };

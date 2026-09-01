@@ -1,8 +1,35 @@
 import { useEffect, useRef } from "react";
+import { initialStates } from "../CoverSection/cover.section.utils";
+import gsap from "gsap";
 
 function ManifiestoSection() {
+    const sectionRef = useRef<HTMLDivElement>(null);
     const circleRef = useRef<HTMLDivElement>(null);
     const circleLineRef = useRef<HTMLDivElement>(null);
+    const wordsParentRef = useRef<HTMLDivElement>(null);
+
+    const hasReveal = useRef(false);
+
+    const wordsRevealSequnce = () => {
+        const words = gsap.utils.toArray<HTMLElement>(
+            ".word",
+            wordsParentRef.current
+        );
+
+        gsap.set(
+            words,
+            initialStates.manfiestoWords
+        );
+
+        const tl = gsap.timeline();
+
+        tl.to(words, {
+            opacity: 1,
+            duration: 1.5,
+            stagger: 0.015,
+            ease: "beaucoup.alpha",
+        })
+    }
 
     useEffect(() => {
         const circle = circleRef.current;
@@ -34,63 +61,87 @@ function ManifiestoSection() {
         };
     }, [circleRef, circleLineRef]);
 
+    useEffect(() => {
+        if (!sectionRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !hasReveal.current) {
+                        wordsRevealSequnce();
+                        hasReveal.current = true;
+                    }
+                });
+            },
+            {
+                threshold: 0.25,
+            }
+        );
+
+        observer.observe(sectionRef.current!);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [hasReveal, sectionRef]);
+
     return (
-        <section className="manifesto pb-[26.5rem] overflow-hidden">
+        <section ref={sectionRef} className="manifesto pb-[26.5rem] overflow-hidden">
             <div className="border-b-px">
                 <div className="grid-w relative">
                     <div className="col-span-4 h-full  border-r-[1px]" />
 
                     <div className="col-span-7 pt-[23.5rem] pb-12">
                         <h2 className="body-45 font-heading font-light italic" data-animation="titleWords">
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >Prototype</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >is</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >creative-driven</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >hybrid</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >structure,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >one-stop</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >shop,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >from</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >ideas</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >to</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >execution.</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >We</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >are</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >not</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >just</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >production</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >house,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >we</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >are</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >an</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >agency,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >design</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >studio,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >and</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >a</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >digital</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >factory</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >all</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >in</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >one</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >place.</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >A</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >place</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >where</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >brands</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >can</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >be</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >more</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >authentic,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >bold,</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >and</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >rise</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >above</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >the</span> {" "}
-                            <span style={{ display: "inline-block" }} className="word" aria-hidden="true" >crowd.</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >Prototype</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >is</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >creative-driven</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >hybrid</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >structure,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >one-stop</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >shop,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >from</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >ideas</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >to</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >execution.</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >We</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >are</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >not</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >just</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >production</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >house,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >we</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >are</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >an</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >agency,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >design</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >studio,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >and</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >digital</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >factory</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >all</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >in</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >one</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >place.</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >A</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >place</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >where</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >brands</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >can</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >be</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >more</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >authentic,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >bold,</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >and</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >rise</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >above</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >the</span> {" "}
+                            <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >crowd.</span> {" "}
                         </h2>
                     </div>
                     <div
