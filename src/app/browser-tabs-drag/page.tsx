@@ -16,7 +16,6 @@ import {
     getReorderShift,
     getTargetSlot,
     leftFlareClipPath,
-    moveItem,
     rightFlareClipPath,
     scaleRadius,
 } from "./utils";
@@ -29,6 +28,7 @@ type TabProps = {
     onClick: () => void;
     dragConstraints: RefObject<HTMLDivElement>;
     dragX?: MotionValue<number>;
+    onDragStart?: () => void;
     onDragEnd?: () => void;
     buttonRef?: RefObject<HTMLButtonElement>;
     leftFlareRadius?: MotionValue<number>;
@@ -37,7 +37,7 @@ type TabProps = {
     rightFlareClip?: MotionValue<string>;
 };
 
-function Tab({ label, active, onClick, dragConstraints, dragX, onDragEnd, buttonRef, leftFlareRadius, rightFlareRadius, leftFlareClip, rightFlareClip }: TabProps) {
+function Tab({ label, active, onClick, dragConstraints, dragX, onDragStart, onDragEnd, buttonRef, leftFlareRadius, rightFlareRadius, leftFlareClip, rightFlareClip }: TabProps) {
     return (
         <motion.button
             ref={buttonRef}
@@ -46,6 +46,7 @@ function Tab({ label, active, onClick, dragConstraints, dragX, onDragEnd, button
             dragConstraints={dragConstraints}
             dragElastic={0}
             dragMomentum={false}
+            onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             style={active ? { x: dragX } : undefined}
             className={clsx(
@@ -97,7 +98,6 @@ function Tab({ label, active, onClick, dragConstraints, dragX, onDragEnd, button
 const TABS = ["Tab 1", "Tab 2", "Tab 3"];
 
 function BrowserTabsDrag() {
-    const [tabs, setTabs] = useState(TABS);
     const [activeTab, setActiveTab] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -112,24 +112,30 @@ function BrowserTabsDrag() {
     const dragX = useMotionValue(0);
 
     // Which slot the dragged (active) tab currently hovers over. Non-dragged
-    // tabs shift to make room for this slot while the drag is in progress.
+    // tabs slide aside to open it while the drag is in progress.
     const [targetSlot, setTargetSlot] = useState(activeTab);
 
-    // On commit the reordered array already puts each tab in its final slot, so
-    // the leftover `animate x` shift must snap to 0 without sliding. This flag
-    // makes that one frame instant.
-    const [instantSnap, setInstantSnap] = useState(false);
+    // True only while the user is physically dragging. The snap-back animation
+    // and dragX.set(0) on select also fire the change listener below; letting
+    // them through would clobber `targetSlot`, so we only track a real drag.
+    const isDraggingRef = useRef(false);
+
+    // framer-motion fires a native `click` right after a drag. Without this
+    // guard that click runs the active tab's onClick (dragX.set(0) + reset
+    // targetSlot) and yanks the tab + neighbours back to their start — so the
+    // snap never sticks. Set on drag end (pointerup, before the click).
+    const didDragRef = useRef(false);
 
     // Live-track the hovered slot as the active tab is dragged.
     useMotionValueEvent(dragX, "change", (x) => {
-        setTargetSlot(getTargetSlot(activeTab, x, PITCH, tabs.length));
+        if (!isDraggingRef.current) return;
+        setTargetSlot(getTargetSlot(activeTab, x, PITCH, TABS.length));
     });
 
-    // Resting left offset of the active tab inside the row. The row and the
-    // content both start at the wrapper's left edge, so this is also the tab's
-    // offset inside the content. Lets the flares / corner radii reflect the
-    // tab's real position when you just SELECT a tab without dragging.
-    const tabBaseLeft = activeTab * (currentTabWidth + TAB_GAP);
+    // Resting left offset of the active tab (its slot × pitch). `dragX` shifts
+    // it from there. Lets the flares / corner radii reflect the tab's real
+    // position, including when you just SELECT a tab without dragging.
+    const tabBaseLeft = activeTab * PITCH;
 
     // Absolute distance from the tab's left / right edge to the content's
     // left / right edge; dragX shifts the tab from its base position.
@@ -145,25 +151,22 @@ function BrowserTabsDrag() {
     const contentTopLeftRadius = useTransform(leftDistance, (d) => scaleRadius(d, 0.5, 20));
     const contentTopRightRadius = useTransform(rightDistance, (d) => scaleRadius(d, 0.5, 20));
 
-    // On release: settle the dragged tab into its target slot, then commit the
-    // reorder. The array reshuffle lands every tab in its final slot, so we flip
-    // `instantSnap` for that frame to cancel the now-stale `animate x` shifts
-    // without a visible jump.
+    // On release: just snap the active tab onto its target slot by animating
+    // `dragX` to that slot's offset. No commit, no reorder — the neighbours stay
+    // where the preview left them and the active tab holds its snapped position.
     function handleDragEnd() {
-        const to = getTargetSlot(activeTab, dragX.get(), PITCH, tabs.length);
+        // Stop tracking before the snap animation runs so its change events
+        // don't reset `targetSlot`.
+        isDraggingRef.current = false;
+        // Swallow the trailing click this drag will emit.
+        didDragRef.current = true;
+
+        const to = getTargetSlot(activeTab, dragX.get(), PITCH, TABS.length);
 
         animate(dragX, (to - activeTab) * PITCH, {
             type: "spring",
             stiffness: 500,
             damping: 40,
-            onComplete: () => {
-                setInstantSnap(true);
-                setTabs((prev) => moveItem(prev, activeTab, to));
-                setActiveTab(to);
-                setTargetSlot(to);
-                dragX.set(0);
-                requestAnimationFrame(() => setInstantSnap(false));
-            },
         });
     }
 
@@ -173,11 +176,11 @@ function BrowserTabsDrag() {
 
                 {/* the tabs here */}
                 <div className="flex gap-2 mb-0">
-                    {tabs.map((label, index) => {
+                    {TABS.map((label, index) => {
                         const active = index === activeTab;
-                        // Non-dragged tabs slide aside to open the target slot.
-                        // The active tab is driven by `dragX`, so its wrapper
-                        // stays put.
+                        // The active tab's offset rides on `dragX`, so its wrapper
+                        // stays put. Inactive tabs slide aside to open the hovered
+                        // slot (a no-op when not dragging: targetSlot === activeTab).
                         const shift = active
                             ? 0
                             : getReorderShift(index, activeTab, targetSlot, PITCH);
@@ -186,23 +189,28 @@ function BrowserTabsDrag() {
                             <motion.div
                                 key={label}
                                 animate={{ x: shift }}
-                                transition={
-                                    instantSnap
-                                        ? { duration: 0 }
-                                        : { type: "spring", stiffness: 500, damping: 40 }
-                                }
+                                transition={{ type: "spring", stiffness: 500, damping: 40 }}
                                 style={{ zIndex: active ? 10 : 0 }}
                             >
                                 <Tab
                                     label={label}
                                     active={active}
                                     onClick={() => {
+                                        // Ignore the synthetic click emitted at
+                                        // the end of a drag.
+                                        if (didDragRef.current) {
+                                            didDragRef.current = false;
+                                            return;
+                                        }
                                         setActiveTab(index);
                                         setTargetSlot(index);
                                         dragX.set(0);
                                     }}
                                     dragConstraints={contentRef}
                                     dragX={dragX}
+                                    onDragStart={() => {
+                                        isDraggingRef.current = true;
+                                    }}
                                     onDragEnd={handleDragEnd}
                                     leftFlareRadius={leftFlareRadius}
                                     rightFlareRadius={rightFlareRadius}
