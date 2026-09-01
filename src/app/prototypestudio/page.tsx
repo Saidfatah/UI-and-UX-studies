@@ -4,6 +4,7 @@ import "./styles/style.css";
 
 import { CustomEase } from "gsap/CustomEase";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HomeCoverSection from "./CoverSection";
 import LoaderFade from "./LoaderFade";
 import TarteAuCitronToast from "./TarteAuCitronToast";
@@ -13,7 +14,7 @@ import Lenis from "lenis";
 import { useEffect, useRef } from "react";
 
 
-gsap.registerPlugin(CustomEase);
+gsap.registerPlugin(CustomEase, ScrollTrigger);
 
 CustomEase.create("beaucoup.alpha", ".25, .46, .45, .9");
 
@@ -41,19 +42,23 @@ function PrototypeStudio() {
             content: contentRef.current,
         });
 
+        lenis.on("scroll", ScrollTrigger.update);
+
+        const update = (time: number) => {
+            lenis.raf(time * 1000);
+        };
+
+        gsap.ticker.add(update);
+        gsap.ticker.lagSmoothing(0);
+
         lenisRef.current = lenis;
 
-        let animationFrame: number;
-
-        function raf(time: number) {
-            lenis.raf(time);
-            animationFrame = requestAnimationFrame(raf);
-        }
-
-        animationFrame = requestAnimationFrame(raf);
+        // Important: calculate ScrollTrigger positions
+        // after Lenis has been initialized.
+        ScrollTrigger.refresh();
 
         return () => {
-            cancelAnimationFrame(animationFrame);
+            gsap.ticker.remove(update);
             lenis.destroy();
             lenisRef.current = null;
         };
@@ -76,7 +81,7 @@ function PrototypeStudio() {
                     className="home"
                 >
                     <HomeCoverSection />
-                    <ManifiestoSection />
+                    <ManifiestoSection scrollerRef={mainRef} />
                 </div>
             </div>
         </>

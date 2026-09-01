@@ -1,35 +1,17 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { initialStates } from "../CoverSection/cover.section.utils";
 import gsap from "gsap";
 
-function ManifiestoSection() {
+
+interface ManifiestoSectionProps {
+    scrollerRef: RefObject<HTMLDivElement | null>;
+}
+
+function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
     const circleRef = useRef<HTMLDivElement>(null);
     const circleLineRef = useRef<HTMLDivElement>(null);
     const wordsParentRef = useRef<HTMLDivElement>(null);
-
-    const hasReveal = useRef(false);
-
-    const wordsRevealSequnce = () => {
-        const words = gsap.utils.toArray<HTMLElement>(
-            ".word",
-            wordsParentRef.current
-        );
-
-        gsap.set(
-            words,
-            initialStates.manfiestoWords
-        );
-
-        const tl = gsap.timeline();
-
-        tl.to(words, {
-            opacity: 1,
-            duration: 1.5,
-            stagger: 0.015,
-            ease: "beaucoup.alpha",
-        })
-    }
 
     useEffect(() => {
         const circle = circleRef.current;
@@ -61,29 +43,38 @@ function ManifiestoSection() {
         };
     }, [circleRef, circleLineRef]);
 
+
     useEffect(() => {
-        if (!sectionRef.current) return;
+        const section = sectionRef.current;
+        const wordsParent = wordsParentRef.current;
+        const scroller = scrollerRef.current;
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting && !hasReveal.current) {
-                        wordsRevealSequnce();
-                        hasReveal.current = true;
-                    }
-                });
-            },
-            {
-                threshold: 0.25,
-            }
-        );
+        if (!section || !wordsParent || !scroller) return;
 
-        observer.observe(sectionRef.current!);
+        const ctx = gsap.context(() => {
+            const words = gsap.utils.toArray<HTMLElement>(
+                ".word",
+                wordsParent
+            );
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [hasReveal, sectionRef]);
+            gsap.set(words, initialStates.manfiestoWords);
+
+            gsap.to(words, {
+                opacity: 1,
+                duration: 1.5,
+                stagger: 0.015,
+                ease: "beaucoup.alpha",
+                scrollTrigger: {
+                    trigger: section,
+                    scroller: scroller,
+                    start: "top 25%",
+                    once: true,
+                },
+            });
+        }, section);
+
+        return () => ctx.revert();
+    }, [scrollerRef]);
 
     return (
         <section ref={sectionRef} className="manifesto pb-[26.5rem] overflow-hidden">
@@ -92,7 +83,7 @@ function ManifiestoSection() {
                     <div className="col-span-4 h-full  border-r-[1px]" />
 
                     <div className="col-span-7 pt-[23.5rem] pb-12">
-                        <h2 className="body-45 font-heading font-light italic" data-animation="titleWords">
+                        <h2 ref={wordsParentRef} className="body-45 font-heading font-light italic" data-animation="titleWords">
                             <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >Prototype</span> {" "}
                             <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >is</span> {" "}
                             <span style={{ display: "inline-block", ...initialStates.manfiestoWords }} className="word" aria-hidden="true" >a</span> {" "}
