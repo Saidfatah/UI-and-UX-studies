@@ -21,5 +21,5 @@ useEffect(() => {
   };
 }, []);
 
-  return <canvas ref={canvasRef}  className=' !w-screen !h-screen' />;
+  return <canvas ref={canvasRef}  className=' bg-black !w-screen !h-screen' />;
 }

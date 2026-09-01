@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vercel triangle led</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0; height: 100%; background: #000; overflow: hidden;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #stage {
+    position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas { display: block; cursor: pointer; touch-action: none; }
+  #tabs {
+    position: fixed; top: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 10;
+  }
+  .tab {
+    padding: 7px 14px; border-radius: 999px; font-size: 12.5px; letter-spacing: .01em;
+    color: rgba(255,255,255,.5); background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.08); cursor: pointer; user-select: none;
+    transition: color .2s ease, background .2s ease, border-color .2s ease;
+  }
+  .tab:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.08); }
+  .tab.active {
+    color: #fff; background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.22);
+  }
+  #hint {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.28); font-size: 11.5px; letter-spacing: .02em;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="tabs">
+  <div class="tab active" data-click="-1">Idle</div>
+  <div class="tab" data-click="0">Side A</div>
+  <div class="tab" data-click="1">Side B</div>
+  <div class="tab" data-click="2">Side C</div>
+</div>
+<div id="stage"><canvas id="gl"></canvas></div>
+<div id="hint">click the triangle for the RGB deploy &middot; hover to move the light &middot; tabs isolate an edge</div>
+
+<script type="module">
+/* ============================================================================================
+ * triangle-led-4 — standalone WebGL2 recreation
+ *
+ * Ported directly from Vercel's production The GLSL shader strings, the triangle/LED geometry
+ * math, the LED-emitter-mesh vertex builder (incl. mitered corner caps), the config-UBO
+ * packing, and the "lines" idle-shimmer + "edge" highlight animation curves
+ *
+ *  - WebGPU renderer path (this always used the WebGL2 path's actual shader source)
+ *  - Web Worker / OffscreenCanvas indirection (rendered directly to the visible canvas)
+ *  - Light theme variant (dark floor only)
+ *  - Drag/drop deploy particle burst + scan/pulse/coding/lines2 LED patterns
+ * ========================================================================================== */
+
+// ---------------------------------------------------------------------------------------
+// Constants (real defaults config module)
+// ---------------------------------------------------------------------------------------
+const TRIANGLE_HEIGHT_RATIO = (180 / 630) * 0.8;
+const LEDS_PER_EDGE = 24;
+const LED_COUNT = 3 * LEDS_PER_EDGE; // 72
+const LED_EMITTER_MESH_EXPANSION_PX = 1;
+const LED_SDF_CROP_EXPANSION_PX = 2;
+const HERO_CANVAS_MAX_CSS = 720;
+const NOISE_ROTATION_START_SECONDS = 10;
+const BRIGHTNESS_MIN_HOVER_MULTIPLIER = 4;
+const BRIGHTNESS_MIN_HOVER_SMOOTHING = 0.2;
+
+const HERO_CAMERA_ZOOM_DESKTOP = 1.3;
+const HERO_CAMERA_ZOOM_MOBILE = 1.6;
+
+const DIRECT_TRIANGLE_ABSORPTION = 2;
+const DIRECT_TRIANGLE_FALLOFF_POWER = 1;
+const DIRECT_TRIANGLE_HIT_THRESHOLD_PX = 0.75;
+const DIRECT_TRIANGLE_INTENSITY_SCALE = 50;
+const DIRECT_TRIANGLE_MIN_SOURCE_LUMA = 0.001;
+const DIRECT_TRIANGLE_MIN_STEP_PX = 1.5;
+const DIRECT_TRIANGLE_TARGET_SCALE = 0.5;
+
+const TUNABLE_DEFAULTS = {
+  darkFloorAlbedo: 1, lightFloorAlbedo: 1, ledIntensity: 1, noiseScale: 0.01,
+  rotationSpeed: -0.2, brightnessMin: 0.09, brightnessMinDark: 0.05,
+  brightnessMax: 1, brightnessMaxLight: 1.02, ledHitThreshold: 1,
+  ledRaycastClipInsetPx: 2, particleExposureBoostMin: 5.2, particleExposureBoostMax: 60,
+  particleSpawnSpread: 118, particleNoiseOffset: 1,
+};
+
+const HERO_STATE_MODES = { coding: "coding", scan: "scan", pulse: "pulse", edge: "edge", lines: "lines", lines2: "lines2" };
+const HERO_STATE_DEFAULTS = {
+  mode: HERO_STATE_MODES.lines, transitionDuration: 0.25,
+  edgeIndex: 0, edgeBaseBrightness: 0.05, edgeHighlightBrightness: 0.4,
+};
+
+const DEFAULT_BRUSH = {
+  radius: 28, friction: 5, colour: { r: 1, g: 1, b: 1 },
+  glowEnabled: true, glowRadius: 165, glowStrength: 1, glowSmoothing: 0.23,
+  glowFacingEnabled: true, glowFacingFullDeg: 90, glowFacingZeroDeg: 100,
+  linesFadeDistance: 0.6,
+};
+
+const LIGHT_AO_DEFAULTS = { radiance: 0.07, contactOpacity: 0.1, contactSize: 3, contactFalloffPower: 1.6, highlightPower: 0.7, highlightStrength: 1.25 };
+const RADIANCE_DEBUG_DEFAULTS = { enabled: false, redMultiplier: 1, greenMultiplier: 1, blueMultiplier: 1 };
+const DARK_FLOOR_DEFAULTS = {
+  sdfFadeDistanceScale: 0.75, sdfFadeEdgePx: 0, nearFalloffPower: 4,
+  nearFalloffDistanceScale: 0.046, nearFalloffIntensity: 1.2, nearFalloffMapMin: 2.74, nearFalloffMapMax: 5,
+  middleFalloffPower: 1, middleFalloffIntensity: 0.16,
+  tailIntensity: 0.65, tailMapMin: 0, tailMapMax: 8.85, tailPower: 0.05,
+  nearFalloffEnabled: true, middleFalloffEnabled: false, farFalloffEnabled: true,
+  noiseEnabled: true, radianceJitterPx: 16, vibrancy: 2,
+};
+const DARK_POSTPROCESS_DEFAULTS = { contrast: 1.05, exposure: 0.25 };
+const HOVER_RGB_TINT_DEFAULTS = {
+  enabled: true, amount: 1, radius: 173, power: 3, responseSmoothing: 0.2, deployDurationSeconds: 0.5,
+  noiseBrightnessMin: 0.3, noiseBrightnessMax: 10, noiseBrightnessPower: 2,
+  edgeRedLinear: { r: 0.896269, g: 0.027321, b: 0.051269 },
+  edgeGreenLinear: { r: 0, g: 0.40724, b: 0.048172 },
+  edgeBlueLinear: { r: 0, g: 0.278894, b: 1 },
+  edgeOverlap: 1,
+};
+
+const EDGE_INDEX_REMAP = [0, 2, 1]; // maps tab (0,1,2) -> geometric edge index
+
+function heroStateForActiveClick(activeClick) {
+  if (activeClick === 0 || activeClick === 1 || activeClick === 2) {
+    return { mode: HERO_STATE_MODES.edge, edgeIndex: EDGE_INDEX_REMAP[activeClick] };
+  }
+  return { mode: HERO_STATE_MODES.lines, edgeIndex: HERO_STATE_DEFAULTS.edgeIndex };
+}
+
+// ---------------------------------------------------------------------------------------
+// Triangle / LED geometry (ported from canonicalTriangleGeometry, triangleLedRadius,
+// triangleLedShapeDimensions, triangleEdgeLedLayout, ledMeshGeometry, triangleAnchorIndices)
+// ---------------------------------------------------------------------------------------
+let heroSceneScale = 1;
+function setHeroSceneScale(v) { heroSceneScale = Number.isFinite(v) && v > 0 ? v : 1; }
+function resolveHeroSceneScale(zoom, cssHeight, mobile) {
+  return mobile || !Number.isFinite(cssHeight) || cssHeight <= 0 ? zoom : zoom * Math.min(1, 560 / cssHeight);
+}
+
+function canonicalTriangleGeometry(dims) {
+  const height = dims.height * TRIANGLE_HEIGHT_RATIO * heroSceneScale;
+  const circumradius = (2 * height) / 3;
+  const inradius = height / 3;
+  const sideLength = (2 * height) / Math.sqrt(3);
+  const cx = 0.5 * dims.width, cy = 0.5 * dims.height;
+  return {
+    center: { x: cx, y: cy },
+    top: { x: cx, y: cy - circumradius },
+    left: { x: cx - 0.5 * sideLength, y: cy + inradius },
+    right: { x: cx + 0.5 * sideLength, y: cy + inradius },
+    height, circumradius, inradius, sideLength,
+  };
+}
+function triangleLedRadius(dims) { return 0.0236 * canonicalTriangleGeometry(dims).height; }
+function triangleLedShapeDimensions(dims, ledsPerEdge) {
+  const geo = canonicalTriangleGeometry(dims);
+  const radius = triangleLedRadius(dims);
+  const cornerTrim = Math.min(2 * radius * Math.sqrt(3) + 1, 0.45 * geo.sideLength);
+  const centerSpacing = Math.max(0, geo.sideLength - 2 * cornerTrim) / Math.max(1, ledsPerEdge);
+  return {
+    normalHalfThickness: 2 * radius,
+    tangentHalfLength: Math.max(0, 0.5 * centerSpacing - 0.5),
+    cornerTrim, centerSpacing,
+  };
+}
+function scaleTriangleGeometry(geo, scale) {
+  const c = geo.center;
+  const s = (p) => ({ x: c.x + (p.x - c.x) * scale, y: c.y + (p.y - c.y) * scale });
+  return {
+    center: c, top: s(geo.top), left: s(geo.left), right: s(geo.right),
+    height: geo.height * scale, circumradius: geo.circumradius * scale,
+    inradius: geo.inradius * scale, sideLength: geo.sideLength * scale,
+  };
+}
+function marginFraction(geo) {
+  const refH = 720 * TRIANGLE_HEIGHT_RATIO;
+  const n = (5 * Math.min(geo.height, refH)) / refH;
+  return geo.inradius > n ? (geo.inradius - n) / geo.inradius : 1;
+}
+function ledMeshGeometry(dims) {
+  const geo = canonicalTriangleGeometry(dims);
+  return scaleTriangleGeometry(geo, marginFraction(geo));
+}
+function triangleEdgeLedLayout(dims, ledsPerEdge) {
+  const geo = canonicalTriangleGeometry(dims);
+  const frac = marginFraction(geo);
+  const inner = scaleTriangleGeometry(geo, frac);
+  const { top, left, right, center } = inner;
+  const shrunkDims = { width: dims.width, height: dims.height * frac };
+  const shape = triangleLedShapeDimensions(shrunkDims, ledsPerEdge);
+  const positions = [];
+  for (const [a, b] of [[top, left], [left, right], [right, top]]) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+    const trimT = len > 0 ? shape.cornerTrim / len : 0;
+    const spacingT = len > 0 ? shape.centerSpacing / len : 0;
+    for (let i = 0; i < ledsPerEdge; i++) {
+      const t = trimT + (i + 0.5) * spacingT;
+      positions.push({ x: a.x + dx * t, y: a.y + dy * t, angle });
+    }
+  }
+  return { center, positions, geometry: inner, ledRadius: triangleLedRadius(shrunkDims), ledShape: shape };
+}
+
+// ---------------------------------------------------------------------------------------
+// LED emitter mesh vertex builder (mitered corner caps) — ported
+// ---------------------------------------------------------------------------------------
+function dirNormal(angle) {
+  const d = { x: Math.cos(angle), y: Math.sin(angle) };
+  return { dir: d, normal: { x: -d.y, y: d.x } };
+}
+function offsetPoint(p, dirVec, amount) { return { x: p.x + dirVec.x * amount, y: p.y + dirVec.y * amount, n: amount }; }
+function sqDist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
+function farther(a, b, ref) { return sqDist(a, ref) >= sqDist(b, ref) ? a : b; }
+function lineIntersect(p0, d0, p1, d1) {
+  const r = d0.x * d1.y - d0.y * d1.x;
+  if (Math.abs(r) < 1e-6) return undefined;
+  const t = ((p1.x - p0.x) * d1.y - (p1.y - p0.y) * d1.x) / r;
+  return { x: p0.x + d0.x * t, y: p0.y + d0.y * t };
+}
+function buildLedEmitterVertices(dims, expansionPx) {
+  const layout = triangleEdgeLedLayout(dims, LEDS_PER_EDGE);
+  const { tangentHalfLength: r0, normalHalfThickness: n0 } = layout.ledShape;
+  const c = r0 + expansionPx, d = n0 + expansionPx;
+  const out = [];
+  const push = (ledIdx, x, y, tangent, normal) => out.push(x, y, tangent, normal, ledIdx, 0);
+  const quad = (ledIdx, center, dir, normal, tMin, tMax, nMin, nMax) => {
+    const corners = [{ t: tMin, n: nMin }, { t: tMax, n: nMin }, { t: tMax, n: nMax }, { t: tMin, n: nMax }];
+    for (const idx of [0, 1, 2, 0, 2, 3]) {
+      const p = corners[idx];
+      push(ledIdx, center.x + dir.x * p.t + normal.x * p.n, center.y + dir.y * p.t + normal.y * p.n, p.t, p.n);
+    }
+  };
+  layout.positions.forEach((pos, ledIdx) => {
+    const { dir, normal } = dirNormal(pos.angle || 0);
+    quad(ledIdx, pos, dir, normal, -c, c, -d, d);
+  });
+
+  const vertices = [layout.geometry.top, layout.geometry.left, layout.geometry.right];
+  for (let e = 0; e < 3; e++) {
+    const prevIdx = ((e + 2) % 3) * LEDS_PER_EDGE + LEDS_PER_EDGE - 1;
+    const nextIdx = e * LEDS_PER_EDGE;
+    const prevLed = layout.positions[prevIdx], nextLed = layout.positions[nextIdx], vertex = vertices[e];
+    if (!prevLed || !nextLed || !vertex) continue;
+    const prevDN = dirNormal(prevLed.angle || 0), nextDN = dirNormal(nextLed.angle || 0);
+    const S = { x: prevLed.x + prevDN.dir.x * c, y: prevLed.y + prevDN.dir.y * c };
+    const M = { x: nextLed.x - nextDN.dir.x * c, y: nextLed.y - nextDN.dir.y * c };
+    let bx = S.x + M.x - 2 * vertex.x, by = S.y + M.y - 2 * vertex.y;
+    const blen = Math.hypot(bx, by);
+    const bisector = blen <= 0 ? { x: 0, y: 0 } : { x: bx / blen, y: by / blen };
+    const apex = { x: vertex.x + bisector.x * (layout.ledShape.cornerTrim + c), y: vertex.y + bisector.y * (layout.ledShape.cornerTrim + c) };
+    const xCorner = farther(offsetPoint(S, prevDN.normal, -d), offsetPoint(S, prevDN.normal, d), M);
+    const yCorner = farther(offsetPoint(M, nextDN.normal, -d), offsetPoint(M, nextDN.normal, d), S);
+    const apexInter = lineIntersect(xCorner, prevDN.dir, yCorner, nextDN.dir) ?? vertex;
+    const trim = layout.ledShape.cornerTrim;
+    push(prevIdx, apexInter.x, apexInter.y, trim, 0);
+    push(prevIdx, xCorner.x, xCorner.y, c, xCorner.n);
+    push(prevIdx, apex.x, apex.y, trim, 0);
+    push(nextIdx, apexInter.x, apexInter.y, -trim, 0);
+    push(nextIdx, apex.x, apex.y, -trim, 0);
+    push(nextIdx, yCorner.x, yCorner.y, -c, yCorner.n);
+  }
+  return new Float32Array(out);
+}
+
+// ---------------------------------------------------------------------------------------
+// LED animation state — "lines" idle shimmer + "edge" highlight + brush glow + RGB deploy
+// (ported from computeLeds() / K())
+// ---------------------------------------------------------------------------------------
+const LINE_CENTERS_DEFAULT = [6, 6, 6];
+const LINE_VELOCITIES_DEFAULT = [-3.302, -2.355, -1.636];
+const LINES_FREQ = [0.41, 0.31, 0.23], LINES_PHASE = [0, 2.1, 4.2];
+const LINES_WFREQ = [0.52, 0.38, 0.28], LINES_WPHASE = [Math.PI / 2, 0.4, -0.6];
+const LEN_LO = LEDS_PER_EDGE, LEN_HI = 1.7 * LEDS_PER_EDGE;
+const LEN_MID = (LEN_LO + LEN_HI) / 2, LEN_SPAN = (LEN_HI - LEN_LO) / 2;
+
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function wrapLed(v) { return ((v % LED_COUNT) + LED_COUNT) % LED_COUNT; }
+function wrapDelta(a, b) { return (((a - b) % LED_COUNT) + LED_COUNT + LED_COUNT / 2) % LED_COUNT - LED_COUNT / 2; }
+function midpoint(a, b) { return { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 }; }
+function glowKernel(px, py, ex, ey, radius, power) { return Math.pow(1 / (1 + Math.hypot(px - ex, py - ey) / radius), power); }
+
+function createLedState(dims) {
+  const layout = triangleEdgeLedLayout(dims, LEDS_PER_EDGE);
+  const data = new Float32Array(8 * layout.positions.length);
+  const normals = new Float32Array(2 * layout.positions.length);
+  layout.positions.forEach((p, i) => {
+    const o = 8 * i;
+    data[o + 0] = p.x; data[o + 1] = p.y; data[o + 2] = 0; data[o + 3] = p.angle || 0;
+    data[o + 4] = 1; data[o + 5] = 1; data[o + 6] = 1; data[o + 7] = 0;
+    let nx = -Math.sin(p.angle || 0), ny = Math.cos(p.angle || 0);
+    const cx = p.x - layout.center.x, cy = p.y - layout.center.y;
+    if (nx * cx + ny * cy < 0) { nx = -nx; ny = -ny; }
+    normals[2 * i] = nx; normals[2 * i + 1] = ny;
+  });
+  return {
+    data, currentState: data.slice(), targetState: data.slice(), deployingState: data.slice(),
+    center: layout.center,
+    deployEdgeCenters: [midpoint(layout.geometry.top, layout.geometry.left), midpoint(layout.geometry.left, layout.geometry.right), midpoint(layout.geometry.right, layout.geometry.top)],
+    triangleVertices: [layout.geometry.top, layout.geometry.left, layout.geometry.right],
+    normals,
+    lastMode: undefined, lastEdgeIndex: undefined, transitionStart: 0, transitionDuration: 0, transitionActive: false,
+    animationClock: NOISE_ROTATION_START_SECONDS, lastFrameTime: undefined,
+    lineCenters: Float32Array.from(LINE_CENTERS_DEFAULT), lineVelocities: Float32Array.from(LINE_VELOCITIES_DEFAULT),
+    glowState: new Float32Array(LED_COUNT), glowDecaying: false,
+    hoverTransition: 0, hoverActive: false,
+  };
+}
+
+function setLed(arr, idx, brightness, r, g, b) {
+  const o = 8 * idx; arr[o + 2] = brightness; arr[o + 4] = r; arr[o + 5] = g; arr[o + 6] = b;
+}
+
+function computeLinesMode(state, target, animClock, dt) {
+  for (let i = 0; i < 3; i++) state.lineCenters[i] = wrapLed((state.lineCenters[i] || 0) + (state.lineVelocities[i] || 0) * dt);
+  const l = animClock - NOISE_ROTATION_START_SECONDS;
+  const outerLen = [], innerLen = [], amp = [];
+  for (let e = 0; e < 3; e++) {
+    const len = Math.max(1, 0.5 * (LEN_MID + LEN_SPAN * Math.sin(l * LINES_FREQ[e] + LINES_PHASE[e])));
+    outerLen[e] = len; innerLen[e] = 0.5 * len;
+    amp[e] = 0.5 + 0.5 * Math.sin(l * LINES_WFREQ[e] + LINES_WPHASE[e]);
+  }
+  for (let i = 0; i < LED_COUNT; i++) {
+    let r = 0;
+    for (let e = 0; e < 3; e++) {
+      const dist = Math.abs(wrapDelta(i, state.lineCenters[e] || 0));
+      const shaped = dist <= innerLen[e] ? 1 : clamp01(1 - (dist - innerLen[e]) / (outerLen[e] - innerLen[e]));
+      r = Math.max(r, shaped * amp[e]);
+    }
+    setLed(target, i, clamp01(r), 1, 1, 1);
+  }
+}
+
+function computeEdgeMode(target, edgeIndex, brightnessMin, highlightBrightness, colorMix) {
+  const lo = edgeIndex * LEDS_PER_EDGE, hi = lo + LEDS_PER_EDGE;
+  const base = clamp01(0.125 * brightnessMin * (1 - 0.8 * colorMix));
+  const highlight = clamp01(highlightBrightness * (1 + 2 * colorMix));
+  for (let i = 0; i < LED_COUNT; i++) setLed(target, i, i >= lo && i < hi ? highlight : base, 1, 1, 1);
+}
+
+function computeDeployTint(state, out, tint) {
+  out.set(state.data);
+  const amount = clamp01(tint?.amount ?? 1);
+  const radius = Math.max(tint?.radius ?? 1, 1);
+  const power = Math.max(tint?.power ?? 1, 0.001);
+  const red = tint?.edgeRedLinear ?? HOVER_RGB_TINT_DEFAULTS.edgeRedLinear;
+  const green = tint?.edgeGreenLinear ?? HOVER_RGB_TINT_DEFAULTS.edgeGreenLinear;
+  const blue = tint?.edgeBlueLinear ?? HOVER_RGB_TINT_DEFAULTS.edgeBlueLinear;
+  const invOverlap = 1 / Math.max(tint?.edgeOverlap ?? 1, 0.01);
+  for (let i = 0; i < LED_COUNT; i++) {
+    const o = 8 * i, x = state.data[o], y = state.data[o + 1];
+    const [ec0, ec1, ec2] = state.deployEdgeCenters;
+    const wr = Math.pow(glowKernel(x, y, ec0.x, ec0.y, radius, power), invOverlap);
+    const wg = Math.pow(glowKernel(x, y, ec1.x, ec1.y, radius, power), invOverlap);
+    const wb = Math.pow(glowKernel(x, y, ec2.x, ec2.y, radius, power), invOverlap);
+    const wsum = Math.max(wr + wg + wb, 1e-4);
+    let r = (red.r * wr + green.r * wg + blue.r * wb) / wsum;
+    let g = (red.g * wr + green.g * wg + blue.g * wb) / wsum;
+    let b = (red.b * wr + green.b * wg + blue.b * wb) / wsum;
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    if (luma > 1e-4) { const inv = 1 / luma; r *= inv; g *= inv; b *= inv; }
+    setLed(out, i, out[o + 2], lerp(1, r, amount), lerp(1, g, amount), lerp(1, b, amount));
+  }
+}
+
+function stepEaseInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+function computeLeds(state, time, tunables, hero, hoverDeploy, brush) {
+  const eo = state.lastFrameTime === undefined;
+  const dt = eo ? 0 : Math.max(0, Math.min(time - state.lastFrameTime, 0.1));
+  state.lastFrameTime = time;
+  const speedup = dt * (1 + 9 * Math.sin(clamp01(hoverDeploy?.factor ?? 0) * Math.PI));
+  if (eo) state.animationClock = NOISE_ROTATION_START_SECONDS;
+  state.animationClock += speedup;
+
+  const edgeIndex = Number.isFinite(hero.edgeIndex) ? Math.max(0, Math.min(2, Math.round(hero.edgeIndex))) : 0;
+  const edgeChanged = hero.mode === HERO_STATE_MODES.edge && state.lastEdgeIndex !== undefined && edgeIndex !== state.lastEdgeIndex;
+  if (state.lastMode === undefined) { state.lastMode = hero.mode; state.lastEdgeIndex = edgeIndex; state.transitionActive = false; }
+  else if (hero.mode !== state.lastMode || edgeChanged) {
+    state.currentState.set(state.data);
+    state.transitionStart = time; state.transitionDuration = Math.max(0, hero.transitionDuration);
+    state.transitionActive = state.transitionDuration > 0;
+    state.lastMode = hero.mode; state.lastEdgeIndex = edgeIndex;
+  }
+
+  const colorMix = clamp01(hoverDeploy?.factor ?? 0);
+  if (hero.mode === HERO_STATE_MODES.edge) computeEdgeMode(state.targetState, edgeIndex, tunables.brightnessMin, hero.edgeHighlightBrightness, colorMix);
+  else computeLinesMode(state, state.targetState, state.animationClock, speedup);
+
+  // linesFadeDistance: fade the pattern when the pointer sits far outside the triangle
+  const linesFade = (hero.mode === HERO_STATE_MODES.lines) && (brush?.linesFadeDistance ?? 0) > 0;
+  let hoverFactor = 0;
+  if (linesFade) {
+    let active = 0;
+    if (brush?.active === true && brush?.isMouse === true && brush?.inside !== true) {
+      const [A, B, C] = state.triangleVertices;
+      const px = brush.x, py = brush.y;
+      const distToSeg = (p1, p2) => {
+        const vx = p2.x - p1.x, vy = p2.y - p1.y;
+        const t = clamp01(((px - p1.x) * vx + (py - p1.y) * vy) / (vx * vx + vy * vy || 1));
+        const dx = px - (p1.x + vx * t), dy = py - (p1.y + vy * t);
+        return Math.hypot(dx, dy);
+      };
+      const dist = Math.min(distToSeg(A, B), distToSeg(B, C), distToSeg(C, A));
+      const threshold = (brush.linesFadeDistance ?? 0) * (state.__triHeight ?? 400);
+      if (!state.hoverActive && dist < threshold) state.hoverActive = true;
+      else if (state.hoverActive && dist > 1.2 * threshold) state.hoverActive = false;
+      active = state.hoverActive ? 1 : 0;
+    } else state.hoverActive = false;
+    if (state.hoverTransition > 1e-4 || active > 0) {
+      const k = 1 - Math.exp(-dt / 0.3);
+      state.hoverTransition += (active - state.hoverTransition) * k;
+    }
+    hoverFactor = clamp01(state.hoverTransition);
+    if (hoverFactor > 1e-4) {
+      const keep = 1 - hoverFactor;
+      for (let i = 0; i < LED_COUNT; i++) state.targetState[8 * i + 2] *= keep;
+    }
+  } else { state.hoverTransition = 0; state.hoverActive = false; }
+
+  // mode transition crossfade
+  let progress = 1, eased = 1;
+  if (state.transitionActive) {
+    progress = clamp01((time - state.transitionStart) / state.transitionDuration);
+    eased = stepEaseInOutCubic(progress);
+    for (let i = 0; i < state.data.length; i++) state.data[i] = state.currentState[i] + (state.targetState[i] - state.currentState[i]) * eased;
+    if (progress >= 1) state.transitionActive = false;
+  } else state.data.set(state.targetState);
+
+  // RGB deploy tint blend
+  const deployFactor = clamp01(hoverDeploy?.factor ?? 0);
+  if (deployFactor > 1e-4) {
+    computeDeployTint(state, state.deployingState, hoverDeploy.tint);
+    for (let i = 0; i < state.data.length; i++) state.data[i] = state.data[i] + (state.deployingState[i] - state.data[i]) * deployFactor;
+  }
+
+  // brush glow (directional "light moving toward cursor")
+  const glowActive = brush?.active === true && brush?.isMouse === true && brush?.glowEnabled === true && (brush.glowStrength ?? 0) > 0 && (brush.glowRadius ?? 0) > 0;
+  if (glowActive || state.glowDecaying) {
+    const smoothing = brush?.glowSmoothing ?? 0;
+    const k = smoothing > 0 ? 1 - Math.exp(-dt / smoothing) : 1;
+    const bx = brush?.x ?? 0, by = brush?.y ?? 0;
+    const facing = brush?.glowFacingEnabled === true;
+    const cosFull = Math.cos((brush?.glowFacingFullDeg ?? 90) * Math.PI / 180);
+    const cosZero = Math.cos((brush?.glowFacingZeroDeg ?? 100) * Math.PI / 180);
+    const span = cosFull - cosZero;
+    let anyGlow = false;
+    for (let i = 0; i < LED_COUNT; i++) {
+      const o = 8 * i;
+      let g = 0;
+      if (glowActive) {
+        const dx = state.data[o] - bx, dy = state.data[o + 1] - by;
+        const dist = Math.hypot(dx, dy);
+        g = brush.glowStrength * (1 - clamp01(dist / brush.glowRadius));
+        if (facing && g > 0 && dist > 1e-4) {
+          const facingDot = state.normals[2 * i] * (-dx / dist) + state.normals[2 * i + 1] * (-dy / dist);
+          g *= span > 1e-6 ? clamp01((facingDot - cosZero) / span) : (facingDot >= cosFull ? 1 : 0);
+        }
+      }
+      const prev = state.glowState[i] || 0;
+      const cur = prev + (g - prev) * k;
+      state.glowState[i] = cur;
+      if (cur > 1e-4) {
+        anyGlow = true;
+        const amt = cur;
+        if (amt > 1e-4) state.data[o + 2] = lerp(state.data[o + 2] || 0, 1, amt);
+      }
+    }
+    state.glowDecaying = glowActive || anyGlow;
+  }
+
+  return { mode: hero.mode, active: state.transitionActive };
+}
+
+// ---------------------------------------------------------------------------------------
+// GLSL — fullscreen vert, verbatim
+// ---------------------------------------------------------------------------------------
+const SHARED_GLSL = `
+ivec2 fboTexel(in highp sampler2D tex, in ivec2 coord) {
+  return ivec2(coord.x, textureSize(tex, 0).y - 1 - coord.y);
+}
+float hash21(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+const mat3 OK_INV_B = mat3(
+  0.4121656120, 0.2118591070, 0.0883097947,
+  0.5362752080, 0.6807189584, 0.2818474174,
+  0.0514575653, 0.1074065790, 0.6302613616
+);
+const mat3 OK_FWD_B = mat3(
+  4.0767245293, -1.2681437731, -0.0041119885,
+  -3.3072168827, 2.6093323231, -0.7034763098,
+  0.2307590544, -0.3411344290, 1.7068625689
+);
+const mat3 ACES_INPUT_MAT = mat3(
+  0.59719, 0.07600, 0.02840,
+  0.35458, 0.90834, 0.13383,
+  0.04823, 0.01566, 0.83777
+);
+const mat3 ACES_OUTPUT_MAT = mat3(
+  1.60475, -0.10208, -0.00327,
+  -0.53108, 1.10813, -0.07276,
+  -0.07367, -0.00605, 1.07602
+);
+vec3 rgb_to_oklab(vec3 c) {
+  vec3 lms = OK_INV_B * c;
+  return sign(lms) * pow(abs(lms), vec3(1.0 / 3.0));
+}
+vec3 oklab_to_rgb(vec3 c) {
+  vec3 lms = c * c * c;
+  return OK_FWD_B * lms;
+}
+vec3 col3v(vec3 v) { return rgb_to_oklab(v); }
+vec3 rrt_and_odt_fit(vec3 v) {
+  vec3 a = v * (v + 0.0245786) - vec3(0.000090537);
+  vec3 b = v * (0.983729 * v + 0.4329510) + vec3(0.238081);
+  return a / b;
+}
+vec3 aces_fitted(vec3 color) {
+  vec3 c = ACES_INPUT_MAT * color;
+  c = rrt_and_odt_fit(c);
+  c = ACES_OUTPUT_MAT * c;
+  return clamp(c, vec3(0.0), vec3(1.0));
+}
+vec3 linear_to_srgb_pow(vec3 color) { return pow(color, vec3(1.0 / 2.2)); }
+vec3 tonemap_lottes(vec3 x) {
+  float a = 1.6; float d = 0.977; float hdr_max = 8.0; float mid_in = 0.18; float mid_out = 0.267;
+  float b = (-pow(mid_in, a) + pow(hdr_max, a) * mid_out) / ((pow(hdr_max, a * d) - pow(mid_in, a * d)) * mid_out);
+  float c = (pow(hdr_max, a * d) * pow(mid_in, a) - pow(hdr_max, a) * pow(mid_in, a * d) * mid_out) / ((pow(hdr_max, a * d) - pow(mid_in, a * d)) * mid_out);
+  return pow(x, vec3(a)) / (pow(x, vec3(a * d)) * b + c);
+}
+vec3 tonemap(vec3 color) {
+  vec3 c = clamp(color, vec3(0.0), vec3(65504.0));
+  vec3 mapped = tonemap_lottes(c);
+  return linear_to_srgb_pow(clamp(mapped, vec3(0.0), vec3(1.0)));
+}
+float value_remap(float value, float minIn, float maxIn, float minOut, float maxOut) {
+  return minOut + (value - minIn) * (maxOut - minOut) / (maxIn - minIn);
+}
+float value_remap_clamp(float value, float minIn, float maxIn, float minOut, float maxOut) {
+  float remapped = value_remap(value, minIn, maxIn, minOut, maxOut);
+  return clamp(remapped, min(minOut, maxOut), max(minOut, maxOut));
+}
+float sdf_segment(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a; vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+float sdf_triangle_vertices(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float d = min(min(sdf_segment(p, a, b), sdf_segment(p, b, c)), sdf_segment(p, c, a));
+  vec2 edge0 = b - a; vec2 edge1 = c - b; vec2 edge2 = a - c;
+  float side0 = edge0.x * (p.y - a.y) - edge0.y * (p.x - a.x);
+  float side1 = edge1.x * (p.y - b.y) - edge1.y * (p.x - b.x);
+  float side2 = edge2.x * (p.y - c.y) - edge2.y * (p.x - c.x);
+  bool inside = (side0 <= 0.0 && side1 <= 0.0 && side2 <= 0.0) || (side0 >= 0.0 && side1 >= 0.0 && side2 >= 0.0);
+  return inside ? -d : d;
+}
+float value_map01(float value, float lo, float hi) {
+  float denom = hi - lo;
+  float safe_denom = abs(denom) < 0.0001 ? 0.001 : denom;
+  return clamp((value - lo) / safe_denom, 0.0, 1.0);
+}
+float near_falloff(float triangle_sdf, float near_light, float fade_inner, float circumradius, vec4 near, float band_power, float enabled) {
+  float mapped = value_map01(near_light, near.z, near.w);
+  float near_outer = max(circumradius * near.x, fade_inner + 0.001);
+  float near_fade = value_remap_clamp(triangle_sdf, near_outer, fade_inner, 0.0, 1.0);
+  float band = pow(near_fade, max(band_power, 0.001));
+  return mapped * band * near.y * enabled;
+}
+float middle_falloff(float triangle_sdf, float fade_inner, float circumradius, float outer_scale, vec4 middle, float enabled) {
+  float middle_outer = max(circumradius * outer_scale, fade_inner + 0.001);
+  float middle_fade = value_remap_clamp(triangle_sdf, middle_outer, fade_inner, 0.0, 1.0);
+  float value = pow(middle_fade, max(middle.x, 0.001)) * middle.y;
+  return value * smoothstep(0.0, 1.0, middle_fade) * enabled;
+}
+float far_falloff(float near_light, vec4 glow, float power, float enabled) {
+  float mapped = value_map01(near_light, glow.z, glow.w);
+  float shaped = pow(mapped, max(power, 0.001));
+  return shaped * glow.x * enabled;
+}
+`;
+
+const FULLSCREEN_VERT = `#version 300 es
+precision highp float;
+out vec2 v_uv;
+void main() {
+  vec2 positions[3] = vec2[3](vec2(-1.0, -3.0), vec2(-1.0, 1.0), vec2(3.0, 1.0));
+  vec2 p = positions[gl_VertexID];
+  v_uv = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
+  gl_Position = vec4(p, 0.0, 1.0);
+}
+`;
+
+const LIGHT_SOURCES_FRAG = `
+layout(std140) uniform Config {
+  vec2 resolution; float time; float floor_albedo;
+  vec4 brush; vec4 colour; vec4 tunables; vec4 triangle; vec4 options; vec4 led_clip;
+};
+uniform highp sampler2D u_leds;
+in vec2 v_uv; out vec4 frag_color;
+const uint LED_COUNT = 72u;
+const float OCCLUDER_INSET_PX = 4.0;
+float signed_triangle_area(vec2 a, vec2 b, vec2 p) { vec2 e = b - a; return e.x * (p.y - a.y) - e.y * (p.x - a.x); }
+bool inside_triangle(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float s0 = signed_triangle_area(a, b, p), s1 = signed_triangle_area(b, c, p), s2 = signed_triangle_area(c, a, p);
+  return (s0 <= 0.0 && s1 <= 0.0 && s2 <= 0.0) || (s0 >= 0.0 && s1 >= 0.0 && s2 >= 0.0);
+}
+float segment_distance(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h);
+}
+float triangle_sdf(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float ed = min(segment_distance(p, a, b), min(segment_distance(p, b, c), segment_distance(p, c, a)));
+  return inside_triangle(p, a, b, c) ? -ed : ed;
+}
+void main() {
+  vec2 pixel = v_uv * resolution;
+  vec2 top = vec2(triangle.x, triangle.y - triangle.z);
+  vec2 left = vec2(triangle.x - triangle.w, triangle.y + triangle.z * 0.5);
+  vec2 right = vec2(triangle.x + triangle.w, triangle.y + triangle.z * 0.5);
+  float tri_dist = triangle_sdf(pixel, top, left, right);
+  bool render_black_occluder = options.x > 0.5;
+  float best_led_dist = 1e6;
+  for (uint i = 0u; i < LED_COUNT; i = i + 1u) {
+    vec4 led = texelFetch(u_leds, ivec2(0, int(i)), 0);
+    vec2 delta = pixel - led.xy;
+    vec2 edge_dir = vec2(cos(led.w), sin(led.w));
+    vec2 edge_normal = vec2(-edge_dir.y, edge_dir.x);
+    vec2 led_local = vec2(dot(delta, edge_dir), dot(delta, edge_normal));
+    float led_half_length = options.z, led_half_thickness = options.w;
+    float led_dist = max(abs(led_local.x) - led_half_length, abs(led_local.y) - led_half_thickness);
+    float led_clip_dist = tri_dist + led_clip.y;
+    best_led_dist = min(best_led_dist, max(led_dist, led_clip_dist));
+  }
+  float inset_occluder_dist = tri_dist + OCCLUDER_INSET_PX;
+  float occluder_dist = render_black_occluder ? inset_occluder_dist : 1e6;
+  float best_dist = min(best_led_dist, occluder_dist);
+  frag_color = vec4(vec3(0.0), best_dist);
+}
+`;
+
+const LED_EMITTER_VERT = `#version 300 es
+precision highp float;
+layout(std140) uniform Config {
+  vec2 resolution; float time; float floor_albedo;
+  vec4 brush; vec4 colour; vec4 tunables; vec4 triangle; vec4 options; vec4 led_clip;
+};
+layout(location = 0) in vec2 a_position;
+layout(location = 1) in vec2 a_local;
+layout(location = 2) in float a_led_index;
+out vec2 v_local; out float v_led_index; out vec2 v_pixel;
+void main() {
+  vec2 clip = (a_position / resolution) * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+  gl_Position = vec4(clip, 0.0, 1.0);
+  v_local = a_local; v_led_index = a_led_index; v_pixel = a_position;
+}
+`;
+
+const LED_EMITTER_FRAG = `
+layout(std140) uniform Config {
+  vec2 resolution; float time; float floor_albedo;
+  vec4 brush; vec4 colour; vec4 tunables; vec4 triangle; vec4 options; vec4 led_clip;
+};
+uniform highp sampler2D u_leds;
+in vec2 v_local; in float v_led_index; in vec2 v_pixel; out vec4 frag_color;
+const uint LED_COUNT = 72u;
+float signed_triangle_area(vec2 a, vec2 b, vec2 p) { vec2 e = b - a; return e.x * (p.y - a.y) - e.y * (p.x - a.x); }
+bool inside_triangle(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float s0 = signed_triangle_area(a, b, p), s1 = signed_triangle_area(b, c, p), s2 = signed_triangle_area(c, a, p);
+  return (s0 <= 0.0 && s1 <= 0.0 && s2 <= 0.0) || (s0 >= 0.0 && s1 >= 0.0 && s2 >= 0.0);
+}
+float segment_distance(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h);
+}
+float triangle_sdf(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float ed = min(segment_distance(p, a, b), min(segment_distance(p, b, c), segment_distance(p, c, a)));
+  return inside_triangle(p, a, b, c) ? -ed : ed;
+}
+void main() {
+  vec2 pixel = v_pixel;
+  vec2 top = vec2(triangle.x, triangle.y - triangle.z);
+  vec2 left = vec2(triangle.x - triangle.w, triangle.y + triangle.z * 0.5);
+  vec2 right = vec2(triangle.x + triangle.w, triangle.y + triangle.z * 0.5);
+  float tri_dist = triangle_sdf(pixel, top, left, right);
+  if (tri_dist - led_clip.x > 0.0) discard;
+  uint raw_index = uint(max(round(v_led_index), 0.0));
+  uint i = min(raw_index, LED_COUNT - 1u);
+  float n01 = clamp(texelFetch(u_leds, ivec2(0, int(i)), 0).z, 0.0, 1.0);
+  float intensity = mix(tunables.y, tunables.z, n01);
+  vec3 emit = texelFetch(u_leds, ivec2(1, int(i)), 0).rgb * tunables.x * intensity;
+  frag_color = vec4(emit, 0.0);
+}
+`;
+
+const DIRECT_RAYCAST_FRAG = `
+layout(std140) uniform Config {
+  vec4 tri_a_b; vec4 tri_c_target; vec4 size_steps; vec4 params; vec4 target_info;
+};
+uniform highp sampler2D light_sources_tex;
+in vec2 v_uv; out vec4 frag_color;
+struct Interval { float start; float length; bool valid; };
+struct TraceHit { vec3 rgb; float distance; bool hit; };
+const uint MAX_RAYS = 24u;
+const float JITTER_AMPLITUDE = 0.7;
+const float DT_PI = 3.141592653589793;
+const float DT_EPSILON = 1e-5;
+vec2 tri_a() { return tri_a_b.xy; } vec2 tri_b() { return tri_a_b.zw; } vec2 tri_c() { return tri_c_target.xy; }
+float cross2(vec2 a, vec2 b) { return a.x * b.y - a.y * b.x; }
+float wrap_pi(float angle) { return atan(sin(angle), cos(angle)); }
+float triangle_signed_area(vec2 a, vec2 b, vec2 c) { return cross2(b - a, c - a); }
+bool point_in_triangle(vec2 p, vec2 a, vec2 b, vec2 c) {
+  float area = triangle_signed_area(a, b, c);
+  if (abs(area) <= DT_EPSILON) return false;
+  float inv_area = 1.0 / area;
+  float u = cross2(b - p, c - p) * inv_area, v = cross2(c - p, a - p) * inv_area, w = 1.0 - u - v;
+  return u >= -DT_EPSILON && v >= -DT_EPSILON && w >= -DT_EPSILON;
+}
+float segment_distance(vec2 p, vec2 a, vec2 b) {
+  vec2 e = b - a, v = p - a; float h = clamp(dot(v, e) / max(dot(e, e), DT_EPSILON), 0.0, 1.0); return length(v - e * h);
+}
+float triangle_edge_distance(vec2 p, vec2 a, vec2 b, vec2 c) {
+  return min(segment_distance(p, a, b), min(segment_distance(p, b, c), segment_distance(p, c, a)));
+}
+Interval angular_interval(vec2 p, vec2 a, vec2 b, vec2 c) {
+  if (abs(triangle_signed_area(a, b, c)) <= DT_EPSILON) return Interval(0.0, 0.0, false);
+  if (point_in_triangle(p, a, b, c)) return Interval(0.0, 0.0, false);
+  if (triangle_edge_distance(p, a, b, c) <= size_steps.w) return Interval(0.0, 0.0, false);
+  vec2 center = (a + b + c) / 3.0;
+  float center_angle = atan(center.y - p.y, center.x - p.x);
+  float ra = wrap_pi(atan(a.y - p.y, a.x - p.x) - center_angle);
+  float rb = wrap_pi(atan(b.y - p.y, b.x - p.x) - center_angle);
+  float rc = wrap_pi(atan(c.y - p.y, c.x - p.x) - center_angle);
+  float min_rel = min(ra, min(rb, rc)), max_rel = max(ra, max(rb, rc)), len = max_rel - min_rel;
+  if (!(len > DT_EPSILON) || len >= DT_PI) return Interval(0.0, 0.0, false);
+  return Interval(wrap_pi(center_angle + min_rel), len, true);
+}
+float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+vec4 load_light_source(vec2 sample_pos) {
+  ivec2 dims = textureSize(light_sources_tex, 0);
+  bool inside = sample_pos.x >= 0.0 && sample_pos.x < float(dims.x) && sample_pos.y >= 0.0 && sample_pos.y < float(dims.y);
+  if (!inside) return vec4(0.0, 0.0, 0.0, 1000.0);
+  ivec2 px = clamp(ivec2(floor(sample_pos)), ivec2(0), dims - ivec2(1));
+  return texelFetch(light_sources_tex, fboTexel(light_sources_tex, px), 0);
+}
+struct EdgePrecomp { vec2 e; vec2 diff; float cross_diff_e; };
+EdgePrecomp precompute_edge(vec2 origin, vec2 p, vec2 q) {
+  vec2 e = q - p, diff = p - origin; return EdgePrecomp(e, diff, cross2(diff, e));
+}
+float ray_segment_t(vec2 dir, EdgePrecomp pre) {
+  float denom = cross2(dir, pre.e);
+  if (abs(denom) < DT_EPSILON) return -1.0;
+  float inv = 1.0 / denom, t = pre.cross_diff_e * inv, u = cross2(pre.diff, dir) * inv;
+  if (t < size_steps.z || u < 0.0 || u > 1.0) return -1.0;
+  return t;
+}
+TraceHit trace_light_source(vec2 origin, vec2 dir, EdgePrecomp ab, EdgePrecomp bc, EdgePrecomp ca) {
+  float t = 1e30;
+  float t0 = ray_segment_t(dir, ab), t1 = ray_segment_t(dir, bc), t2 = ray_segment_t(dir, ca);
+  if (t0 >= 0.0) t = min(t, t0); if (t1 >= 0.0) t = min(t, t1); if (t2 >= 0.0) t = min(t, t2);
+  if (t > 1e29) return TraceHit(vec3(0.0), 0.0, false);
+  vec4 source = load_light_source(origin + dir * t);
+  bool source_lit = max(max(source.r, source.g), source.b) > params.w;
+  if (source_lit) return TraceHit(source.rgb, t, true);
+  return TraceHit(vec3(0.0), 0.0, false);
+}
+void main() {
+  float target_scale = max(target_info.x, 1e-4);
+  vec2 frag_pos = v_uv * tri_c_target.zw;
+  vec2 pixel_sim = frag_pos / target_scale;
+  vec2 a = tri_a(), b = tri_b(), c = tri_c();
+  Interval interval = angular_interval(pixel_sim, a, b, c);
+  if (!interval.valid) { frag_color = vec4(0.0, 0.0, 0.0, 1.0); return; }
+  float jitter = (ign(frag_pos) - 0.5) * JITTER_AMPLITUDE;
+  float inv_rays = 1.0 / float(MAX_RAYS);
+  float step_angle = interval.length * inv_rays;
+  float start_angle = interval.start + interval.length * (0.5 + jitter) * inv_rays;
+  float step_c = cos(step_angle), step_s = sin(step_angle);
+  vec2 dir = vec2(cos(start_angle), sin(start_angle));
+  EdgePrecomp ab = precompute_edge(pixel_sim, a, b), bc = precompute_edge(pixel_sim, b, c), ca = precompute_edge(pixel_sim, c, a);
+  vec3 sum = vec3(0.0);
+  for (uint i = 0u; i < MAX_RAYS; i = i + 1u) {
+    TraceHit hit = trace_light_source(pixel_sim, dir, ab, bc, ca);
+    if (hit.hit) {
+      float falloff_dist = hit.distance * target_info.y;
+      float w = pow(max(falloff_dist, 1.0), -params.y) * exp(-params.x * hit.distance);
+      sum += hit.rgb * w;
+    }
+    dir = vec2(dir.x * step_c - dir.y * step_s, dir.x * step_s + dir.y * step_c);
+  }
+  vec3 radiance = (sum / float(MAX_RAYS)) * params.z;
+  frag_color = vec4(radiance, 1.0);
+}
+`;
+
+const FLOOR_NOISE_FRAG = `
+in vec2 v_uv; out vec4 fragColor;
+const float BAKE_SIZE = 500.0;
+void main() {
+  vec2 p = floor(v_uv * BAKE_SIZE);
+  float n = hash21(p) + hash21(floor(p * 2.12)) + hash21(floor(p * 3.15));
+  n *= 0.3; n = clamp(n, 0.0, 1.0);
+  fragColor = vec4(vec3(n), 1.0);
+}
+`;
+
+const DARK_FLOOR_FRAG = `
+layout(std140) uniform Config {
+  vec4 screen; vec4 light_sources; vec4 tunables; vec4 triangle; vec4 culling; vec4 radiance_fit;
+  vec4 light_ao; vec4 radiance_debug; vec4 sim_transform; vec4 dark_floor; vec4 dark_glow; vec4 dark_near;
+  vec4 dark_middle; vec4 dark_toggles; vec4 dark_circle; vec4 dark_noise;
+} cfg;
+uniform sampler2D radiance_tex; uniform sampler2D light_sources_tex; uniform sampler2D floor_noise_tex; uniform sampler2D particle_tex;
+in vec2 v_uv; out vec4 fragColor;
+const int FLOOR_NOISE_SIZE = 500;
+const float FLOOR_NOISE_DENSITY = 2.0;
+const float DARK_FLOOR_GRAIN_DPR1_SCALE = 0.5;
+const float UPSAMPLE_B = 1.0; const float UPSAMPLE_C = 0.0;
+const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+const float DARK_EDGE_FADE_MOBILE_BOOST = 2.0;
+int wrapNoiseCoord(int v) { return ((v % FLOOR_NOISE_SIZE) + FLOOR_NOISE_SIZE) % FLOOR_NOISE_SIZE; }
+float sample_floor_noise(vec2 p) {
+  vec2 css_px = p / max(cfg.screen.w, 1e-4);
+  ivec2 noise_px = ivec2(floor(css_px * FLOOR_NOISE_DENSITY));
+  ivec2 noise_uv = ivec2(wrapNoiseCoord(noise_px.x), wrapNoiseCoord(noise_px.y));
+  return texelFetch(floor_noise_tex, noise_uv, 0).r;
+}
+float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+float hash12b(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1531); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec3 bg(vec2 p) {
+  float floor_noise = sample_floor_noise(p) * cfg.dark_noise.x;
+  float grain_intensity = cfg.screen.w < 1.5 ? DARK_FLOOR_GRAIN_DPR1_SCALE : 1.0;
+  float floor_brightness = mix(cfg.tunables.y, cfg.tunables.y * 0.5, floor_noise * grain_intensity);
+  return vec3(floor_brightness);
+}
+struct TriangleCorners { vec2 top; vec2 left; vec2 right; };
+TriangleCorners triangle_corners() {
+  vec2 top = vec2(cfg.triangle.x, cfg.triangle.y - cfg.triangle.z);
+  vec2 left = vec2(cfg.triangle.x - cfg.triangle.w, cfg.triangle.y + cfg.triangle.z * 0.5);
+  vec2 right = vec2(cfg.triangle.x + cfg.triangle.w, cfg.triangle.y + cfg.triangle.z * 0.5);
+  return TriangleCorners(top, left, right);
+}
+vec4 sample_light_sources(vec2 pixel_screen) {
+  vec2 sim_px = (pixel_screen - cfg.sim_transform.xy) / cfg.sim_transform.z;
+  ivec2 px = clamp(ivec2(floor(sim_px)), ivec2(0), ivec2(cfg.light_sources.xy) - ivec2(1));
+  bool inside_sim = sim_px.x >= 0.0 && sim_px.x < cfg.light_sources.x && sim_px.y >= 0.0 && sim_px.y < cfg.light_sources.y;
+  vec4 ls = texelFetch(light_sources_tex, fboTexel(light_sources_tex, px), 0);
+  if (!inside_sim) ls = vec4(0.0, 0.0, 0.0, 1.0);
+  return ls;
+}
+float bc_spline_weight(float x) {
+  float ax = abs(x); float b = UPSAMPLE_B; float c = UPSAMPLE_C;
+  if (ax < 1.0) return ((12.0 - 9.0 * b - 6.0 * c) * ax * ax * ax + (-18.0 + 12.0 * b + 6.0 * c) * ax * ax + (6.0 - 2.0 * b)) / 6.0;
+  if (ax < 2.0) return ((-b - 6.0 * c) * ax * ax * ax + (6.0 * b + 30.0 * c) * ax * ax + (-12.0 * b - 48.0 * c) * ax + (8.0 * b + 24.0 * c)) / 6.0;
+  return 0.0;
+}
+vec3 sample_radiance_cubic(vec2 uv) {
+  ivec2 dims_u = textureSize(radiance_tex, 0); vec2 dims = vec2(dims_u);
+  vec2 texel = clamp(uv, vec2(0.0), vec2(1.0)) * dims - vec2(0.5);
+  vec2 base = floor(texel), f = texel - base; vec3 sum = vec3(0.0); float weight_sum = 0.0;
+  for (int y = -1; y <= 2; y = y + 1) {
+    float wy = bc_spline_weight(f.y - float(y));
+    for (int x = -1; x <= 2; x = x + 1) {
+      float wx = bc_spline_weight(f.x - float(x)); float w = wx * wy;
+      ivec2 tap = clamp(ivec2(base) + ivec2(x, y), ivec2(0), dims_u - ivec2(1));
+      sum += texelFetch(radiance_tex, fboTexel(radiance_tex, tap), 0).rgb * w; weight_sum += w;
+    }
+  }
+  return max(sum / max(weight_sum, 1e-5), vec3(0.0));
+}
+vec3 sample_radiance_at(vec2 pixel_screen) {
+  vec2 fitted_uv = (pixel_screen - cfg.radiance_fit.xy) / cfg.radiance_fit.zw;
+  bool inside_fit = fitted_uv.x >= 0.0 && fitted_uv.x <= 1.0 && fitted_uv.y >= 0.0 && fitted_uv.y <= 1.0;
+  vec3 radiance = sample_radiance_cubic(fitted_uv);
+  if (!inside_fit) radiance = vec3(0.0);
+  return radiance;
+}
+vec3 sample_radiance(vec2 pixel_screen, float triangle_sdf) {
+  vec3 base = sample_radiance_at(pixel_screen);
+  if (cfg.dark_noise.x < 0.5) return base;
+  float light_intensity = dot(base, LUMA);
+  float offset_scale = value_remap_clamp(light_intensity, 0.2, 0.1, 0.0, 1.0);
+  offset_scale *= value_remap_clamp(triangle_sdf, 0.0, cfg.triangle.z * 0.9, 0.0, 1.0);
+  if (offset_scale <= 0.0) return base;
+  float noise = hash12b(pixel_screen);
+  float angle = hash12(pixel_screen) * 6.2831853;
+  vec2 dir = vec2(cos(angle), sin(angle));
+  vec2 offset = dir * offset_scale * cfg.dark_middle.z * cfg.dark_middle.w;
+  vec3 jittered = sample_radiance_at(pixel_screen + offset);
+  return mix(base, jittered, noise);
+}
+vec3 compose_floor(vec3 base_colour, vec3 radiance, vec4 light_sources, float surface, float brightness_factor) {
+  vec3 colour = max(base_colour, vec3(0.0));
+  colour *= radiance;
+  colour = mix(colour, light_sources.rgb, surface);
+  float sat = 1.0 + (cfg.dark_glow.y - 1.0) * brightness_factor;
+  float luma = dot(colour, LUMA);
+  colour = max(mix(vec3(luma), colour, sat), vec3(0.0));
+  colour *= brightness_factor;
+  return colour;
+}
+float edge_fade(vec2 pixel_screen) {
+  float mobile_boost = cfg.screen.x < cfg.screen.y * 1.25 ? DARK_EDGE_FADE_MOBILE_BOOST : 1.0;
+  float w = max(cfg.dark_circle.x * mobile_boost * cfg.screen.y, 1.0);
+  float d = min(pixel_screen.y, cfg.screen.y - pixel_screen.y);
+  float t = clamp(d / w, 0.0, 1.0);
+  return sqrt(t);
+}
+const float OCCLUDER_INTERIOR_MARGIN = 4.0;
+void main() {
+  vec2 pixel_screen = v_uv * cfg.screen.xy;
+  vec2 uv = pixel_screen / cfg.screen.xy;
+  vec2 pixel = uv * cfg.screen.xy - cfg.screen.xy * 0.5;
+  TriangleCorners tri = triangle_corners();
+  float triangle_sdf = sdf_triangle_vertices(pixel_screen, tri.top, tri.left, tri.right);
+  float occluder_edge = max(length(vec2(dFdx(triangle_sdf), dFdy(triangle_sdf))), 1e-4);
+  if (cfg.culling.z > 0.5 && cfg.radiance_debug.x <= 0.5 && triangle_sdf < -OCCLUDER_INTERIOR_MARGIN) {
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0); return;
+  }
+  vec4 light_sources = sample_light_sources(pixel_screen);
+  vec3 radiance = sample_radiance(pixel_screen, triangle_sdf);
+  if (cfg.radiance_debug.x > 0.5) {
+    fragColor = vec4(clamp(radiance * cfg.radiance_debug.yzw, vec3(0.0), vec3(1.0)), 1.0); return;
+  }
+  float surface = smoothstep(4.0, 4.02, max(max(light_sources.r, light_sources.g), light_sources.b));
+  vec3 floor_rgb = bg(pixel);
+  vec3 base_rgb = floor_rgb;
+  if (surface > 0.0) base_rgb = oklab_to_rgb(mix(col3v(floor_rgb), col3v(light_sources.rgb), surface));
+  float fade_inner = cfg.dark_floor.y;
+  float near_light = dot(radiance, LUMA);
+  float near = near_falloff(triangle_sdf, near_light, fade_inner, cfg.triangle.z, cfg.dark_near, cfg.dark_floor.z, cfg.dark_toggles.x);
+  float middle = 0.0;
+  if (cfg.dark_toggles.y > 0.5) middle = middle_falloff(triangle_sdf, fade_inner, cfg.triangle.z, cfg.dark_floor.x, cfg.dark_middle, cfg.dark_toggles.y);
+  float far = far_falloff(near_light, cfg.dark_glow, cfg.dark_floor.w, cfg.dark_toggles.z);
+  float screen_blend = 1.0 - (1.0 - min(near, 1.0)) * (1.0 - min(middle, 1.0)) * (1.0 - min(far, 1.0));
+  float overflow = max(near - 1.0, 0.0) + max(middle - 1.0, 0.0) + max(far - 1.0, 0.0);
+  float brightness_factor = screen_blend + overflow;
+  vec3 colour = compose_floor(base_rgb, radiance, light_sources, surface, brightness_factor);
+  float particle_mask = texelFetch(particle_tex, fboTexel(particle_tex, ivec2(pixel_screen)), 0).r;
+  float exposure = cfg.dark_circle.y;
+  float particle_exposure_boost_max = cfg.culling.w;
+  float contrast = cfg.dark_toggles.w;
+  float particle_exposure = 1.0 + particle_mask * particle_exposure_boost_max;
+  vec3 final_colour = tonemap(colour * exposure * particle_exposure);
+  final_colour = (final_colour - vec3(0.5)) * contrast + vec3(0.5);
+  float occluder = clamp(0.5 - triangle_sdf / occluder_edge, 0.0, 1.0) * cfg.culling.z;
+  final_colour = mix(final_colour, vec3(0.0), occluder);
+  final_colour = final_colour * edge_fade(pixel_screen);
+  fragColor = vec4(final_colour, 1.0);
+}
+`;
+
+// ---------------------------------------------------------------------------------------
+// WebGL2 setup
+// ---------------------------------------------------------------------------------------
+const canvas = document.getElementById("gl");
+const stage = document.getElementById("stage");
+const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false, preserveDrawingBuffer: false, depth: false, stencil: false });
+if (!gl) throw new Error("WebGL2 unavailable");
+if (!gl.getExtension("EXT_color_buffer_float")) throw new Error("EXT_color_buffer_float unavailable");
+gl.getExtension("OES_texture_float_linear");
+
+function compileShader(type, src, label) {
+  const sh = gl.createShader(type);
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(sh);
+    console.error(`Shader ${label} failed:\n`, log, "\n", src);
+    throw new Error(`Shader ${label} failed: ${log}`);
+  }
+  return sh;
+}
+function compileProgram(vertSrc, fragBody, label) {
+  const vs = compileShader(gl.VERTEX_SHADER, vertSrc, `${label}.vert`);
+  const fs = compileShader(gl.FRAGMENT_SHADER, "#version 300 es\nprecision highp float; precision highp int;\n" + SHARED_GLSL + fragBody, `${label}.frag`);
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
+  gl.deleteShader(vs); gl.deleteShader(fs);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(`Program ${label} link failed: ${gl.getProgramInfoLog(prog)}`);
+  return prog;
+}
+function createFloatTarget(w, h, internalFormat, label) {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat, w, h);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  if (status !== gl.FRAMEBUFFER_COMPLETE) throw new Error(`FBO ${label} incomplete: 0x${status.toString(16)}`);
+  return { framebuffer: fb, texture: tex, width: w, height: h };
+}
+function createUBO(byteLength, label) {
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.UNIFORM_BUFFER, buf);
+  gl.bufferData(gl.UNIFORM_BUFFER, byteLength, gl.DYNAMIC_DRAW);
+  gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+  return { buffer: buf, byteLength };
+}
+function writeUBO(ubo, data) { gl.bindBuffer(gl.UNIFORM_BUFFER, ubo.buffer); gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data); gl.bindBuffer(gl.UNIFORM_BUFFER, null); }
+function bindUBOBase(index, ubo) { gl.bindBufferBase(gl.UNIFORM_BUFFER, index, ubo.buffer); }
+function bindBlock(prog, name, index) { const i = gl.getUniformBlockIndex(prog, name); if (i !== gl.INVALID_INDEX) gl.uniformBlockBinding(prog, i, index); }
+function setSamplerUniform(prog, name, unit) { const loc = gl.getUniformLocation(prog, name); if (loc) { gl.useProgram(prog); gl.uniform1i(loc, unit); } }
+
+// Programs
+const lightSourcesProgram = compileProgram(FULLSCREEN_VERT, LIGHT_SOURCES_FRAG, "light_sources");
+const ledEmitterProgram = compileProgram(LED_EMITTER_VERT, LED_EMITTER_FRAG, "led_emitters");
+const directRaycastProgram = compileProgram(FULLSCREEN_VERT, DIRECT_RAYCAST_FRAG, "direct_raycast");
+const floorNoiseProgram = compileProgram(FULLSCREEN_VERT, FLOOR_NOISE_FRAG, "floor_noise");
+const darkFloorProgram = compileProgram(FULLSCREEN_VERT, DARK_FLOOR_FRAG, "dark_floor");
+
+setSamplerUniform(lightSourcesProgram, "u_leds", 0);
+setSamplerUniform(ledEmitterProgram, "u_leds", 0);
+setSamplerUniform(directRaycastProgram, "light_sources_tex", 0);
+setSamplerUniform(darkFloorProgram, "radiance_tex", 1);
+setSamplerUniform(darkFloorProgram, "light_sources_tex", 2);
+setSamplerUniform(darkFloorProgram, "floor_noise_tex", 3);
+setSamplerUniform(darkFloorProgram, "particle_tex", 4);
+bindBlock(lightSourcesProgram, "Config", 0);
+bindBlock(ledEmitterProgram, "Config", 0);
+bindBlock(directRaycastProgram, "Config", 0);
+bindBlock(darkFloorProgram, "Config", 0);
+
+const fullscreenVao = gl.createVertexArray();
+
+// Floor-noise bake (once, static 500x500)
+const floorNoise = (() => {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA8, 500, 500);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.viewport(0, 0, 500, 500);
+  gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST);
+  gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.useProgram(floorNoiseProgram);
+  gl.bindVertexArray(fullscreenVao);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.bindVertexArray(null); gl.useProgram(null);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.deleteFramebuffer(fb);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return tex;
+})();
+
+// Static 1x1 zero particle texture (particles are out of scope for this rebuild)
+const particleTex = (() => {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R8, 1, 1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1, 1, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array([0]));
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return tex;
+})();
+// Sample it with an always-in-range coordinate by binding a texture sized to the canvas instead:
+let particleTexSized = null, particleTexW = 0, particleTexH = 0;
+function ensureParticleTex(w, h) {
+  if (particleTexSized && particleTexW === w && particleTexH === h) return particleTexSized;
+  if (particleTexSized) gl.deleteTexture(particleTexSized);
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R8, Math.max(1, w), Math.max(1, h));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const zeros = new Uint8Array(Math.max(1, w) * Math.max(1, h));
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, Math.max(1, w), Math.max(1, h), gl.RED, gl.UNSIGNED_BYTE, zeros);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  particleTexSized = tex; particleTexW = w; particleTexH = h;
+  return tex;
+}
+
+// LED data texture (2 x 72, RGBA32F)
+const ledTexture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, ledTexture);
+gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, 2, LED_COUNT);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+gl.bindTexture(gl.TEXTURE_2D, null);
+function uploadLedTexture(data) {
+  gl.bindTexture(gl.TEXTURE_2D, ledTexture);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 2, LED_COUNT, gl.RGBA, gl.FLOAT, data);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+// Config UBOs
+const configUbo = createUBO(112, "light-sources-config"); // 28 floats
+const directRaycastUbo = createUBO(256, "direct-raycast-config"); // 64 floats (only first 20 used)
+const floorUbo = createUBO(256, "dark-floor-config"); // 64 floats
+
+// LED emitter VAO/buffer (rebuilt on resize since geometry depends on dims)
+let ledVao = gl.createVertexArray();
+let ledVertexBuffer = gl.createBuffer();
+let ledVertexCount = 0;
+function rebuildLedMesh(dims) {
+  const verts = buildLedEmitterVertices(dims, LED_EMITTER_MESH_EXPANSION_PX);
+  gl.bindBuffer(gl.ARRAY_BUFFER, ledVertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+  gl.bindVertexArray(ledVao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, ledVertexBuffer);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 24, 8);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 24, 16);
+  gl.bindVertexArray(null);
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  ledVertexCount = verts.length / 6;
+}
+
+// Render targets sized to the simulation (rebuilt on resize)
+let lightSourcesRT = null, directRaycastRT = null;
+let simDims = { width: 1024, height: 1024 };
+let ledState = null;
+let lightSourcesBakeKey = "";
+
+function directTriangleTargetSize(dims) { return { width: Math.max(1, Math.ceil(0.5 * dims.width)), height: Math.max(1, Math.ceil(0.5 * dims.height)) }; }
+
+function resizeSimulation(dims) {
+  if (lightSourcesRT) { gl.deleteFramebuffer(lightSourcesRT.framebuffer); gl.deleteTexture(lightSourcesRT.texture); }
+  if (directRaycastRT) { gl.deleteFramebuffer(directRaycastRT.framebuffer); gl.deleteTexture(directRaycastRT.texture); }
+  lightSourcesRT = createFloatTarget(dims.width, dims.height, gl.RGBA16F, "light-sources");
+  const target = directTriangleTargetSize(dims);
+  directRaycastRT = createFloatTarget(target.width, target.height, gl.RGBA16F, "direct-raycast");
+  simDims = dims;
+  ledState = createLedState(dims);
+  rebuildLedMesh(dims);
+  lightSourcesBakeKey = "";
+
+  // Direct raycast UBO (static per simDims)
+  const mesh = ledMeshGeometry(dims);
+  const d = new Float32Array(64);
+  d.set([mesh.top.x, mesh.top.y, mesh.left.x, mesh.left.y], 0);
+  d.set([mesh.right.x, mesh.right.y, target.width, target.height], 4);
+  const f = Math.min(dims.height, HERO_CANVAS_MAX_CSS) / HERO_CANVAS_MAX_CSS;
+  d.set([dims.width, dims.height, DIRECT_TRIANGLE_MIN_STEP_PX * f, DIRECT_TRIANGLE_HIT_THRESHOLD_PX * f], 8);
+  d.set([DIRECT_TRIANGLE_ABSORPTION / dims.height, DIRECT_TRIANGLE_FALLOFF_POWER, DIRECT_TRIANGLE_INTENSITY_SCALE, DIRECT_TRIANGLE_MIN_SOURCE_LUMA], 12);
+  d.set([DIRECT_TRIANGLE_TARGET_SCALE, HERO_CANVAS_MAX_CSS / Math.max(dims.height, 1), 0, 0], 16);
+  writeUBO(directRaycastUbo, d);
+}
+
+// ---------------------------------------------------------------------------------------
+// Interaction state
+// ---------------------------------------------------------------------------------------
+let brush = { ...DEFAULT_BRUSH, x: -1e4, y: -1e4, active: false, inside: false, isMouse: false };
+let activeClick = -1; // tab selection: -1 idle/lines, 0/1/2 edge
+let rgbDeployActive = false; // click-toggle
+let hoverDeployState = { started: false, lastTime: 0, value: 0 };
+
+function pointerToBrush(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = simDims.width / rect.width, scaleY = simDims.height / rect.height;
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+function pointInsideTriangle(px, py, geo) {
+  const s = (a, b, p) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+  const s0 = s(geo.top, geo.left, { x: px, y: py });
+  const s1 = s(geo.left, geo.right, { x: px, y: py });
+  const s2 = s(geo.right, geo.top, { x: px, y: py });
+  return (s0 <= 0 && s1 <= 0 && s2 <= 0) || (s0 >= 0 && s1 >= 0 && s2 >= 0);
+}
+
+canvas.addEventListener("pointermove", (e) => {
+  const p = pointerToBrush(e.clientX, e.clientY);
+  const geo = canonicalTriangleGeometry(simDims);
+  brush = { ...DEFAULT_BRUSH, x: p.x, y: p.y, active: true, isMouse: e.pointerType !== "touch", inside: pointInsideTriangle(p.x, p.y, geo) };
+});
+canvas.addEventListener("pointerleave", () => { brush = { ...DEFAULT_BRUSH, x: -1e4, y: -1e4, active: false, inside: false, isMouse: false }; });
+canvas.addEventListener("click", () => { rgbDeployActive = !rgbDeployActive; });
+
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    activeClick = parseInt(tab.dataset.click, 10);
+  });
+});
+
+// ---------------------------------------------------------------------------------------
+// Resize handling
+// ---------------------------------------------------------------------------------------
+let cssWidth = 0, cssHeight = 0, dpr = 1;
+function handleResize() {
+  const box = stage.getBoundingClientRect();
+  // The real hero canvas spans (close to) the full container width so the floor glow
+  // bleeds off the edge rather than hitting a visible cutoff; only height is capped.
+  cssWidth = Math.max(64, Math.round(box.width));
+  cssHeight = Math.max(64, Math.round(Math.min(box.height, HERO_CANVAS_MAX_CSS)));
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = cssWidth + "px";
+  canvas.style.height = cssHeight + "px";
+  const pixelW = Math.max(1, Math.round(cssWidth * dpr));
+  const pixelH = Math.max(1, Math.round(cssHeight * dpr));
+  canvas.width = pixelW; canvas.height = pixelH;
+
+  const mobile = box.width < 640;
+  setHeroSceneScale(resolveHeroSceneScale(mobile ? HERO_CAMERA_ZOOM_MOBILE : HERO_CAMERA_ZOOM_DESKTOP, cssHeight, mobile));
+
+  const simFloor = Math.max(1, 360 / Math.max(1, cssHeight)); // simulationFloorFactor
+  resizeSimulation({ width: Math.round(cssWidth * simFloor), height: Math.round(cssHeight * simFloor) });
+}
+window.addEventListener("resize", handleResize);
+handleResize();
+
+// ---------------------------------------------------------------------------------------
+// Render loop
+// ---------------------------------------------------------------------------------------
+let startTime = performance.now();
+
+function step(nowMs) {
+  const time = (nowMs - startTime) / 1000;
+
+  // click-toggle rgbDeployActive -> exponential smoothing (deployDurationSeconds)
+  const target = rgbDeployActive ? 1 : 0;
+  if (!hoverDeployState.started) { hoverDeployState.started = true; hoverDeployState.lastTime = time; hoverDeployState.value = target; }
+  const dt = Math.min(0.25, Math.max(0, time - hoverDeployState.lastTime));
+  hoverDeployState.lastTime = time;
+  const tau = HOVER_RGB_TINT_DEFAULTS.deployDurationSeconds;
+  const k = tau > 0 ? 1 - Math.exp(-dt / tau) : 1;
+  hoverDeployState.value += (target - hoverDeployState.value) * k;
+  if (Math.abs(target - hoverDeployState.value) < 1e-4) hoverDeployState.value = target;
+
+  const clickState = heroStateForActiveClick(activeClick);
+  const hero = { ...HERO_STATE_DEFAULTS, ...clickState };
+
+  const tunables = { ...TUNABLE_DEFAULTS, brightnessMin: TUNABLE_DEFAULTS.brightnessMinDark };
+
+  computeLeds(ledState, time, tunables, hero, { factor: hoverDeployState.value, tint: HOVER_RGB_TINT_DEFAULTS }, brush);
+  uploadLedTexture(ledState.data);
+
+  renderFrame(tunables);
+  requestAnimationFrame(step);
+}
+
+function renderFrame(tunables) {
+  const dims = simDims;
+  const geo = canonicalTriangleGeometry(dims);
+  const ledRadius = triangleLedRadius(dims);
+  const shape = triangleLedShapeDimensions(dims, LEDS_PER_EDGE);
+
+  // --- Pass 1: light sources (SDF prepass + LED emitter mesh) ---
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.SCISSOR_TEST);
+  gl.bindVertexArray(fullscreenVao);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, lightSourcesRT.framebuffer);
+  gl.viewport(0, 0, lightSourcesRT.width, lightSourcesRT.height);
+
+  const cfg = new Float32Array(28);
+  cfg.set([dims.width, dims.height, 0, tunables.darkFloorAlbedo], 0);
+  cfg.set([brush.x, brush.y, brush.active ? 1 : 0, brush.radius], 4);
+  cfg.set([brush.colour.r, brush.colour.g, brush.colour.b, 0], 8);
+  cfg.set([tunables.ledIntensity, tunables.brightnessMin, tunables.brightnessMax, ledRadius], 12);
+  cfg.set([geo.center.x, geo.center.y, geo.circumradius, 0.5 * geo.sideLength], 16);
+  const clipInset = Math.min(8, Math.max(-4, tunables.ledRaycastClipInsetPx));
+  cfg.set([1, tunables.ledHitThreshold, shape.tangentHalfLength, shape.normalHalfThickness], 20);
+  cfg.set([LED_SDF_CROP_EXPANSION_PX, clipInset, 0, 0], 24);
+  writeUBO(configUbo, cfg);
+  bindUBOBase(0, configUbo);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, ledTexture);
+
+  const bakeKey = `1:${clipInset}`;
+  if (lightSourcesBakeKey !== bakeKey) {
+    lightSourcesBakeKey = bakeKey;
+    gl.disable(gl.BLEND); gl.colorMask(true, true, true, true);
+    gl.clearColor(0, 0, 0, 1000); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(lightSourcesProgram);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  gl.useProgram(ledEmitterProgram);
+  gl.enable(gl.BLEND);
+  gl.blendFuncSeparate(gl.ONE, gl.ZERO, gl.ONE, gl.ONE);
+  gl.blendEquationSeparate(gl.FUNC_ADD, gl.MIN);
+  gl.colorMask(true, true, true, false);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, ledTexture);
+  gl.bindVertexArray(ledVao);
+  gl.drawArrays(gl.TRIANGLES, 0, ledVertexCount);
+  gl.bindVertexArray(fullscreenVao);
+  gl.disable(gl.BLEND); gl.colorMask(true, true, true, true);
+
+  // --- Pass 2: direct raycast (half-res radiance) ---
+  gl.bindFramebuffer(gl.FRAMEBUFFER, directRaycastRT.framebuffer);
+  gl.viewport(0, 0, directRaycastRT.width, directRaycastRT.height);
+  gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.useProgram(directRaycastProgram);
+  bindUBOBase(0, directRaycastUbo);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, lightSourcesRT.texture);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  // --- Pass 3: dark floor, straight to the canvas backbuffer ---
+  const presW = canvas.width, presH = canvas.height;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, presW, presH);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.useProgram(darkFloorProgram);
+
+  const scale = Math.max(0.001, presH / Math.max(1, dims.height));
+  const originX = (presW - dims.width * scale) * 0.5;
+  const originY = (presH - dims.height * scale) * 0.5;
+  const screenGeo = {
+    centerX: originX + geo.center.x * scale, centerY: originY + geo.center.y * scale,
+    circumradiusY: geo.circumradius * scale, halfSideX: 0.5 * geo.sideLength * scale,
+  };
+  const edgeFadeFrac = 0.2;
+  const N = new Float32Array(64);
+  N.set([presW, presH, 0, dpr], 0);
+  N.set([dims.width, dims.height, 0, 0], 4); // dark: contactOpacity=0
+  N.set([tunables.ledIntensity, tunables.darkFloorAlbedo, LIGHT_AO_DEFAULTS.radiance, 0], 8);
+  N.set([screenGeo.centerX, screenGeo.centerY, screenGeo.circumradiusY, screenGeo.halfSideX], 12);
+  N.set([0, 0, 1, TUNABLE_DEFAULTS.particleExposureBoostMax], 16);
+  N.set([originX, originY, dims.width * scale, dims.height * scale], 20);
+  N.set([LIGHT_AO_DEFAULTS.contactFalloffPower, LIGHT_AO_DEFAULTS.highlightPower, LIGHT_AO_DEFAULTS.highlightStrength, 0], 24);
+  N.set([RADIANCE_DEBUG_DEFAULTS.enabled ? 1 : 0, RADIANCE_DEBUG_DEFAULTS.redMultiplier, RADIANCE_DEBUG_DEFAULTS.greenMultiplier, RADIANCE_DEBUG_DEFAULTS.blueMultiplier], 28);
+  N.set([originX, originY, scale, edgeFadeFrac], 32);
+  N.set([DARK_FLOOR_DEFAULTS.sdfFadeDistanceScale, DARK_FLOOR_DEFAULTS.sdfFadeEdgePx, DARK_FLOOR_DEFAULTS.nearFalloffPower, DARK_FLOOR_DEFAULTS.tailPower], 36);
+  N.set([DARK_FLOOR_DEFAULTS.tailIntensity, DARK_FLOOR_DEFAULTS.vibrancy, DARK_FLOOR_DEFAULTS.tailMapMin, DARK_FLOOR_DEFAULTS.tailMapMax], 40);
+  N.set([DARK_FLOOR_DEFAULTS.nearFalloffDistanceScale, DARK_FLOOR_DEFAULTS.nearFalloffIntensity, DARK_FLOOR_DEFAULTS.nearFalloffMapMin, DARK_FLOOR_DEFAULTS.nearFalloffMapMax], 44);
+  const jitterW = HERO_CANVAS_MAX_CSS * Math.max(dpr, 1e-4);
+  const jitterNorm = Math.min(presH, jitterW) / jitterW;
+  N.set([DARK_FLOOR_DEFAULTS.middleFalloffPower, DARK_FLOOR_DEFAULTS.middleFalloffIntensity, DARK_FLOOR_DEFAULTS.radianceJitterPx, jitterNorm], 48);
+  N.set([DARK_FLOOR_DEFAULTS.nearFalloffEnabled ? 1 : 0, DARK_FLOOR_DEFAULTS.middleFalloffEnabled ? 1 : 0, DARK_FLOOR_DEFAULTS.farFalloffEnabled ? 1 : 0, DARK_POSTPROCESS_DEFAULTS.contrast], 52);
+  N.set([edgeFadeFrac, DARK_POSTPROCESS_DEFAULTS.exposure, 0, 0], 56);
+  N.set([DARK_FLOOR_DEFAULTS.noiseEnabled ? 1 : 0, 0, 0, 0], 60);
+  writeUBO(floorUbo, N);
+  bindUBOBase(0, floorUbo);
+
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, directRaycastRT.texture);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, lightSourcesRT.texture);
+  gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, floorNoise);
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, ensureParticleTex(presW, presH));
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  gl.bindVertexArray(null);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+requestAnimationFrame(step);
+</script>
+</body>
+</html>
