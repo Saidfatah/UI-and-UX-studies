@@ -17,9 +17,9 @@ function ManifiestoSection() {
             const centerX = circle.offsetWidth / 2;
             const centerY = circle.offsetHeight / 2;
 
-            // to make sure ittouches teh circle from outside we subtract 1.5 
-            const left = Math.cos(radians) * radius + centerX - 1.5;
-            const top = Math.sin(radians) * radius + centerY - 1.5;
+            // to make sure ittouches teh circle from outside we subtract 3 
+            const left = Math.cos(radians) * radius + centerX - 3;
+            const top = Math.sin(radians) * radius + centerY - 3;
 
             circleLine.style.left = `${left}px`;
             circleLine.style.top = `${top}px`;
@@ -99,13 +99,13 @@ function ManifiestoSection() {
                     >
                         <div
                             ref={circleLineRef}
-                            className="circle-line w-[2px] h-[2px] bg-blue-500 absolute "
+                            className="circle-line   absolute "
                         >
-                            <div className="absolute top-0 z-[-1] left-0 w-[200vw] h-px bg-red-400 -translate-x-1/2 -rotate-[30deg]" />
+                            <div className="absolute top-0 z-[-1] left-0 w-[200vw] h-px bg-black/10 -translate-x-1/2 -rotate-[30deg]" />
                         </div>
 
                         <div className="absolute-center -translate-x-1/2 -translate-y-1/2">
-                            <div className="absolute top-0 left-0 w-[200vw] h-px bg-red-300 -translate-x-1/2 -rotate-[24deg]" />
+                            <div className="absolute top-0 left-0 w-[200vw] h-px bg-black/10 -translate-x-1/2 -rotate-[24deg]" />
                         </div>
                     </div>
                 </div>
@@ -128,8 +128,29 @@ function ManifiestoSection() {
                         </div>
                     </div>
                     <div className="absolute bottom-0 right-0 -rotate-[10deg]">
-                        <div className="absolute left-1/2 -translate-x-1/2 w-[200vw] h-px bg-red-300"></div>
+                        <div className="absolute left-1/2 -translate-x-1/2 w-[200vw] h-px bg-black/10"></div>
                     </div>
+                </div>
+
+                <div className="col-span-5 pt-container">
+                    <a
+                        href="https://www.prototypestudio.fr/about/"
+                        className="button dark relative inline-flex gap-x-10 items-center silvanaRegular body-20 italic cursor-pointer"
+                    >
+                        <span
+                            className="svg-wrapper w-[0.5rem] mt-[0.1rem] ">
+                            <svg
+                                width="5"
+                                height="9"
+                                viewBox="0 0 5 9"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path d="M5 4.5L0 0L0 9L5 4.5Z" fill="currentColor"></path>
+                            </svg>
+                        </span>
+                        <span className="button-text">About us</span>
+                    </a>
                 </div>
             </div>
         </section>
