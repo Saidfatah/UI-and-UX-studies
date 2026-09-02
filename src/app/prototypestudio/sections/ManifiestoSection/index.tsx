@@ -1,13 +1,9 @@
-import { RefObject, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { initialStates } from "../CoverSection/cover.section.utils";
 import gsap from "gsap";
 
 
-interface ManifiestoSectionProps {
-    scrollerRef: RefObject<HTMLDivElement | null>;
-}
-
-function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
+function ManifiestoSection() {
     const sectionRef = useRef<HTMLDivElement>(null);
     const circleRef = useRef<HTMLDivElement>(null);
     const circleLineRef = useRef<HTMLDivElement>(null);
@@ -47,9 +43,8 @@ function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
     useEffect(() => {
         const section = sectionRef.current;
         const wordsParent = wordsParentRef.current;
-        const scroller = scrollerRef.current;
 
-        if (!section || !wordsParent || !scroller) return;
+        if (!section || !wordsParent) return;
 
         const ctx = gsap.context(() => {
             const words = gsap.utils.toArray<HTMLElement>(
@@ -59,6 +54,9 @@ function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
 
             gsap.set(words, initialStates.manfiestoWords);
 
+            const scrollerElement = document.querySelector(".main");
+            if (!scrollerElement) return;
+
             gsap.to(words, {
                 opacity: 1,
                 duration: 1.5,
@@ -66,7 +64,7 @@ function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
                 ease: "beaucoup.alpha",
                 scrollTrigger: {
                     trigger: section,
-                    scroller: scroller,
+                    scroller: scrollerElement,
                     start: "top 25%",
                     once: true,
                 },
@@ -74,7 +72,7 @@ function ManifiestoSection({ scrollerRef }: ManifiestoSectionProps) {
         }, section);
 
         return () => ctx.revert();
-    }, [scrollerRef]);
+    }, []);
 
     return (
         <section ref={sectionRef} className="manifesto pb-[26.5rem] overflow-hidden">

@@ -107,7 +107,7 @@ function PrototypeStudio() {
                 >
                     <HomeCoverSection onScrollClick={scrollToManfiestoSection} />
                     <div ref={manfiesRef}>
-                        <ManifiestoSection scrollerRef={mainRef} />
+                        <ManifiestoSection/>
                     </div>
                     <WorksSection />
                 </div>
