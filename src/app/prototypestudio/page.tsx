@@ -12,6 +12,7 @@ import ManifiestoSection from "./sections/ManifiestoSection";
 
 import Lenis from "lenis";
 import { useCallback, useEffect, useRef } from "react";
+import WorksSection from "./sections/Works";
 
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
@@ -108,6 +109,7 @@ function PrototypeStudio() {
                     <div ref={manfiesRef}>
                         <ManifiestoSection scrollerRef={mainRef} />
                     </div>
+                    <WorksSection />
                 </div>
             </div>
         </>

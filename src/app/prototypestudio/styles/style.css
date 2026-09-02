@@ -162,9 +162,15 @@ video {
 .border-transparent {
     border-color: #0000;
 }
+
 .border-b-px {
     border-bottom-width: 1px;
 }
+
+.bg-black-8{
+    background-color: rgb(0 0 0 / 0.08);
+}
+
 .items-center {
     align-items: center;
 }
@@ -333,6 +339,10 @@ video {
     column-gap: 3rem;
 }
 
+.gap-y-20 {
+    row-gap: 2rem;
+}
+
 
 
 
@@ -450,6 +460,14 @@ video {
         transition: transform .6s var(--ease-out) 0s,background-color .6s var(--ease-out) 0s
     }
 }
+
+
+
+
+.works-item.active .works-item-overlay {
+    opacity: 0 !important;
+}
+
 
 
 
