@@ -1,4 +1,5 @@
 import gsap from "gsap";
+import { remToPixel } from "../../util";
 
 class HomeCoverAnimation {
     private section: HTMLElement;
@@ -64,11 +65,7 @@ class HomeCoverAnimation {
 
         if (!referenceLine) return;
 
-        const rem = parseFloat(
-            getComputedStyle(document.documentElement).fontSize
-        );
-
-        const lineOffset = referenceLine.offsetHeight - rem * 2;
+        const lineOffset = referenceLine.offsetHeight - remToPixel(2);
 
         gsap.set(this.lines, {
             y: lineOffset,
