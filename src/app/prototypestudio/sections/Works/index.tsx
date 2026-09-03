@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WorksVideoImageItems from "./WorksVideoImageItems";
 import { initialStates, targetStates, workItems } from "./works.utils";
 import { remToPixel } from "../../util";
@@ -6,6 +6,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 function WorksSection() {
+    const worksSectionRef = useRef<HTMLDivElement>(null);
+
     const [activeIndex, setActiveIndex] = useState(0);
     const [hoveredIndex, setHoveredIndex] = useState(-1);
 
@@ -45,6 +47,17 @@ function WorksSection() {
         counterAnimationTimeline.to($counterElement, {
             y: () => window.innerHeight - $counterElement.offsetHeight - remToPixel(2) - headerheight
         });
+
+        const worksSectionScrollTrigger = ScrollTrigger.create({
+            scroller: scrollerElement,
+            trigger: worksSectionRef.current,
+            start: "top 35%",
+            end: "bottom bottom",
+            scrub: true,
+            invalidateOnRefresh: !0,
+            animation: counterAnimationTimeline
+        })
+
 
         const scrolltriggers: {
             activeItem: ScrollTrigger | null,
@@ -179,6 +192,8 @@ function WorksSection() {
         })
 
         return () => {
+            worksSectionScrollTrigger?.kill();
+
             scrolltriggers.forEach((trigger) => trigger.activeItem?.kill());
             scrolltriggers.forEach((trigger) => trigger.itemImageParrallax?.kill());
 
@@ -188,7 +203,7 @@ function WorksSection() {
         };
     }, []);
 
-    return (<section className="works">
+    return (<section ref={worksSectionRef} className="works">
         <div className="grid-w sticky top-[calc(var(--header-height)_-_1px)] h-[calc(100vh_-_var(--header-height))] border-y  overflow-hidden">
             <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-px bg-black-8" ></div>
 
@@ -205,6 +220,13 @@ function WorksSection() {
 
                 <div className="absolute -right-[8%] w-[1px] h-[1px]   top-1/2">
                     <div className="absolute left-1/2 w-[200vw] h-px bg-black-8 -translate-x-1/2 -rotate-[24deg]"></div>
+                </div>
+            </div>
+
+            <div className="col-span-2">
+                <div className="works-counter flex gap-x-20 items-baseline ">
+                    <div className="works-count body-180">{currentIndex < 9 ? '0' : ''}{currentIndex + 1}</div>
+                    <div className="body-50">/11</div>
                 </div>
             </div>
         </div>

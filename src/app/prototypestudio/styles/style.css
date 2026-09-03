@@ -245,6 +245,16 @@ video {
     line-height: 100%;
 }
 
+.body-50 {
+    font-size: 5rem;
+    line-height: 100%;
+}
+
+.body-180 {
+        font-size: 18rem;
+        line-height: 77.77%;
+}
+
 
 .pb-12 {
     padding-bottom: 1.2rem;
@@ -261,6 +271,10 @@ video {
 .gap-x-10{
     -moz-column-gap: 1rem;
     column-gap: 1rem;
+}
+.gap-x-20{
+    -moz-column-gap: 2rem;
+    column-gap: 2rem;
 }
 
 .pt-container {
