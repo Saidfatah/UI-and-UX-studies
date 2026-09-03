@@ -201,6 +201,14 @@ video {
 }
 
 
+.image .lazy.loaded {
+    opacity: 1;
+    transition-duration: .6s;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
+
 .font-heading {
     font-family: Silvana Light Italic, serif;
 }
@@ -459,13 +467,6 @@ video {
         transform-origin: right;
         transition: transform .6s var(--ease-out) 0s,background-color .6s var(--ease-out) 0s
     }
-}
-
-
-
-
-.works-item.active .works-item-overlay {
-    opacity: 0 !important;
 }
 
 
