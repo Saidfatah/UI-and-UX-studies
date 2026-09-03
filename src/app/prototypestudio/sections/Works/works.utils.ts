@@ -39,7 +39,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "https://www.prototypestudio.fr/wp-content/uploads/2025/02/Boucle_MJ_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/valentines-day-marc-jacobs/",
         title: "Valentine's Day",
-        category: "Luxe",
+        category: "Fashion",
         client: "Marc Jacobs"
     },
     {
@@ -49,7 +49,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "https://www.prototypestudio.fr/wp-content/uploads/2026/01/BB_SPRING_LOOP_2026-01-25_Personnalise.mp4",
         href: "https://www.prototypestudio.fr/work/bb-spring-evergreen/",
         title: "Spring Evergreen",
-        category: "Luxe",
+        category: "Commercials",
         client: "Boll & Branc"
     },
     {
@@ -59,7 +59,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_Linvosges_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/tvc-100-ans-linvosges/",
         title: "TVC 100 ans",
-        category: "Luxe",
+        category: "Commercials",
         client: "Linvosges"
     },
     {
@@ -69,7 +69,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/loop_riviera.mp4",
         href: "https://www.prototypestudio.fr/work/malmaison-riviera/",
         title: "Malmaison Riviera",
-        category: "Luxe",
+        category: "Luxury",
         client: "Christofle"
     },
     {
@@ -79,7 +79,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_Lutron_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/the-light-you-feel-lutron/",
         title: "The Light You Feel",
-        category: "Luxe",
+        category: "Commercials",
         client: "Lutron"
     },
     {
@@ -89,7 +89,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_Beaumag.mp4",
         href: "https://www.prototypestudio.fr/work/edito-beau-magazine-x-miumiu/",
         title: "Parco x Miu Miu",
-        category: "Luxe",
+        category: "Fashion",
         client: "Beau Magazine"
     },
     {
@@ -99,7 +99,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_Abyssae_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/abyssae-lartisan-parfumeur/",
         title: "Abyssae",
-        category: "Luxe",
+        category: "Cosmetics",
         client: "L’artisan parfumeur"
     },
     {
@@ -109,7 +109,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/carton_olivia_loop.mp4",
         href: "https://www.prototypestudio.fr/work/boredom-on-set/",
         title: "Boredom on Set",
-        category: "Luxe",
+        category: "Cosmetics",
         client: "Carton Magazine"
     },
     {
@@ -119,7 +119,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_Hermes_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/home-collection-hermes/",
         title: "Home Collection",
-        category: "Luxe",
+        category: "Luxury",
         client: "Hermes"
     },
     {
@@ -129,7 +129,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_LV_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/dualtime-louis-vuitton/",
         title: "Dualtime",
-        category: "Luxe",
+        category: "Luxury",
         client: "Louis Vuitton"
     },
     {
@@ -139,7 +139,7 @@ export const workItems: WorkItem[] = [
         videoSrc: "/videos/prototypestudio/Boucle_pusspuss_compressed.mp4",
         href: "https://www.prototypestudio.fr/work/nothing-is-static-pusspuss-magazine/",
         title: "Nothing is static",
-        category: "Luxe",
+        category: "Fashion",
         client: "Pusspuss Magazine"
     },
 

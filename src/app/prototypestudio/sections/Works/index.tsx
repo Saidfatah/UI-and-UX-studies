@@ -16,20 +16,22 @@ function WorksSection() {
 
     useEffect(() => {
         const scrollerElement = document.querySelector(".main");
-        // const namesWrapper = document.querySelector(".works-names");
-        // const categoriesWrapper = document.querySelector(".works-categories");
         const $countElement = document.querySelector(".works-count");
         const $counterElement = document.querySelector(".works-counter") as HTMLElement;
+        const $namesWrapper = document.querySelector(".works-names") as HTMLElement;
+        const $categoriesWrapper = document.querySelector(".works-categories") as HTMLElement;
 
+
+        const $titlesWrapper = document.querySelector(".works-titles") as HTMLElement;
+        const $titlesContainer = document.querySelector(".works-titles-container") as HTMLElement;
         const titles = document.querySelectorAll(".works-item-title");
-        const titlesWrapper = document.querySelector(".works-titles");
-        const titlesContainer = document.querySelector(".works-categories");
 
         const $items = document.querySelectorAll(".works-item");
         const $itemsInner = document.querySelectorAll(".works-item-inner");
 
+        const $worksButton = document.querySelector(".works-button") as HTMLElement;
 
-        if (!$counterElement || !$countElement) return;
+        if (!$counterElement || !$countElement || !$namesWrapper || !$categoriesWrapper || !$titlesWrapper || !$titlesContainer || !titles || !$worksButton) return;
         if (!scrollerElement) return;
 
         if (!$items || $items.length === 0 || !$itemsInner || $itemsInner.length === 0) return;
@@ -38,6 +40,14 @@ function WorksSection() {
 
         const headerheight = remToPixel(5.5);
 
+
+        gsap.set([$namesWrapper, $categoriesWrapper], {
+            alphaOpacity: 0
+        });
+
+        gsap.set($worksButton, {
+            alphaOpacity: 0
+        });
 
         const counterAnimationTimeline = gsap.timeline({
             defaults: {
@@ -59,88 +69,8 @@ function WorksSection() {
         })
 
 
-        const scrolltriggers: {
-            activeItem: ScrollTrigger | null,
-            itemImageParrallax: ScrollTrigger | null
-        }[] = []
 
-        Array.from($items).map((el, index) => {
-            const workTitleElement = titles[index]
-
-            if (workTitleElement && titlesContainer && titlesWrapper) {
-                const titleTranslateYAnimationTimeline = gsap.timeline();
-
-                titleTranslateYAnimationTimeline.to(workTitleElement, {
-                    y: () =>
-                        -(titlesContainer.getBoundingClientRect().height -
-                            titlesWrapper.getBoundingClientRect().height),
-                });
-            }
-
-
-            const activeItemScrollltrigger = ScrollTrigger.create({
-                scroller: scrollerElement,
-                trigger: el,
-                start: () => `top ${window.innerHeight / 2 + headerheight / 2}px`,
-                end: workItems.length - 1 === index ? "center 30%" : "bottom 25%",
-                invalidateOnRefresh: true,
-                // animation: titleTranslateYAnimationTimeline,
-                onEnter: () => {
-                    // we pnly want to trigger fade in animation for the categories and names
-                    // only when the first work item is triggered 
-                    // if (index === 0) {
-                    //     const tl = gsap.timeline();
-                    //     tl.to([categoriesWrapper, namesWrapper], {
-                    //         autoAlpha: 1,
-                    //         duration: .4,
-                    //         ease: "beaucoup.alpha"
-                    //     })
-                    // }
-
-                    // Ln.set([e.name, e.category], {
-                    //     autoAlpha: 0
-                    // })
-
-                    setActiveIndex(index);
-                },
-                onLeaveBack: () => {
-                    if (index > 0) {
-                        setActiveIndex(index - 1);
-                    }
-                    if (index === 0) {
-                        // const tl = gsap.timeline();
-                        // tl.to([categoriesWrapper, namesWrapper], {
-                        //     autoAlpha: 0,
-                        //     duration: .4,
-                        //     ease: "beaucoup.alpha"
-                        // })
-                    }
-                },
-            });
-
-            const itemImageParallaxScrolltrigger = ScrollTrigger.create({
-                trigger: el,
-                scroller: scrollerElement,
-                scrub: true,
-                animation: gsap.fromTo(el.querySelector('.works-item-image'), {
-                    scale: 1.3,
-                    yPercent: -15
-                }, {
-                    yPercent: 15,
-                    ease: "none"
-                })
-            })
-
-            const triggers = {
-                activeItem: activeItemScrollltrigger,
-                itemImageParrallax: itemImageParallaxScrolltrigger
-            }
-
-            scrolltriggers.push(triggers);
-        });
-
-
-
+        // first 3 work items intro translateY for the inner card divs 
         gsap.set($itemsInner[0], {
             ...initialStates.firstWorkItemInner
         })
@@ -191,6 +121,106 @@ function WorksSection() {
             })
         })
 
+
+        // the main scroll triggers that handle the active index and work item image parralax
+        const scrolltriggers: {
+            activeItem: ScrollTrigger | null,
+            itemImageParrallax: ScrollTrigger | null
+        }[] = []
+
+        Array.from($items).map((el, index) => {
+            const workTitleElement = titles[index]
+
+            const titleTranslateYAnimationTimeline = gsap.timeline();
+
+            titleTranslateYAnimationTimeline.to(workTitleElement, {
+                y: () =>
+                    -($titlesContainer.getBoundingClientRect().height -
+                        $titlesWrapper.getBoundingClientRect().height),
+            });
+
+            const activeItemScrollltrigger = ScrollTrigger.create({
+                scroller: scrollerElement,
+                trigger: el,
+                start: () => `top ${window.innerHeight / 2 + headerheight / 2}px`,
+                end: workItems.length - 1 === index ? "center 30%" : "bottom 25%",
+                invalidateOnRefresh: true,
+                scrub: true,
+                animation: titleTranslateYAnimationTimeline,
+                onEnter: () => {
+                    setActiveIndex(index);
+                    if (index === 0) {
+                        gsap.to([$namesWrapper, $categoriesWrapper], {
+                            autoAlpha: 1,
+                            duration: .4,
+                            ease: "beaucoup.alpha"
+                        })
+                    }
+                },
+                onLeaveBack: () => {
+                    if (index > 0) {
+                        setActiveIndex(index - 1);
+                    }
+
+                    if (index === 0) {
+                        gsap.to([$namesWrapper, $categoriesWrapper], {
+                            autoAlpha: 0,
+                            duration: .4,
+                            ease: "beaucoup.alpha"
+                        })
+                    }
+                },
+            });
+
+            const itemImageParallaxScrolltrigger = ScrollTrigger.create({
+                trigger: el,
+                scroller: scrollerElement,
+                scrub: true,
+                animation: gsap.fromTo(el.querySelector('.works-item-image'), {
+                    scale: 1.3,
+                    yPercent: -15
+                }, {
+                    yPercent: 15,
+                    ease: "none"
+                })
+            })
+
+            const triggers = {
+                activeItem: activeItemScrollltrigger,
+                itemImageParrallax: itemImageParallaxScrolltrigger
+            }
+
+            scrolltriggers.push(triggers);
+        });
+
+
+        // the works button 
+        ScrollTrigger.create({
+            trigger: worksSectionRef.current,
+            scroller: scrollerElement,
+            start: "bottom bottom+=5%",
+            end: "bottom bottom",
+            onEnter: () => {
+                gsap.killTweensOf($worksButton)
+                gsap.to($worksButton, {
+                    autoAlpha: 1,
+                    duration: .4,
+                    ease: "beaucoup.alpha"
+                })
+            }
+            ,
+            onLeaveBack: () => {
+                gsap.killTweensOf($worksButton)
+                gsap.to($worksButton, {
+                    autoAlpha: 0,
+                    duration: .3,
+                    ease: "power2.out"
+                })
+            }
+        })
+
+
+
         return () => {
             worksSectionScrollTrigger?.kill();
 
@@ -229,6 +259,77 @@ function WorksSection() {
                     <div className="body-50">/11</div>
                 </div>
             </div>
+
+            <div className="col-span-2  pt-[calc(50vh_-_1rem)] flex justify-end">
+                <div className="works-names opacity-0 relative body-16 silvanaRegular italic" >
+                    {workItems.map((item, index) => (
+                        <div
+                            key={index}
+                            className={[
+                                "works-item-name text-right whitespace-nowrap",
+                                index > 0 && "absolute top-0 right-0",
+                                index === currentIndex ? "opacity-100" : "opacity-0"
+                            ].join(" ")}
+                        >
+                            {item.title}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="col-start-9 col-end-10 pt-[calc(50vh_-_1rem)]">
+                <div className="works-categories relative body-16 opacity-0 silvanaRegular italic"  >
+                    {workItems.map((item, index) => (
+                        <div
+                            key={index}
+                            className={[
+                                "works-item-category whitespace-nowrap",
+                                index > 0 && "absolute top-0 left-0",
+                                index === currentIndex ? "opacity-100" : "opacity-0"
+                            ].join(" ")}
+                        >
+                            {item.category}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="works-titles-container col-start-10 col-end-13 flex items-end uppercase ">
+                <div className="works-titles w-full flex flex-col justify-end items-end pb-10">
+                    {workItems.map((work, index) => (
+                        <a
+                            key={index}
+                            href={work.href}
+                            className={
+                                [
+                                    "works-item-title body-38  transition-opacity duration-smooth ",
+                                    index === currentIndex ? "opacity-100" : "opacity-30"
+                                ]
+                                    .join(" ")
+                            }
+                        >
+                            {work.title}
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            <div
+                className="works-button opacity-0   absolute bottom-[calc((50vh_-_(var(--column)_*_4_+_var(--padding-container)_*_3)_*_0.5572_/_2)_/_2)] left-1/2 -translate-x-1/2"
+            // style="opacity: 1; visibility: inherit;"
+            >
+                <a
+                    href="https://www.prototypestudio.fr/works/"
+                    className="button dark relative inline-flex gap-x-10 items-center silvanaRegular body-20 italic cursor-pointer">
+                    <span className="svg-wrapper w-[0.5rem] mt-[0.1rem] ">
+                        <svg width="5" height="9" viewBox="0 0 5 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 4.5L0 0L0 9L5 4.5Z" fill="currentColor"></path>
+                        </svg>
+                    </span>
+                    <span className="button-text">All our projects</span>
+                </a>
+            </div>
+
         </div>
 
 

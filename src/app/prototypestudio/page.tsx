@@ -110,6 +110,7 @@ function PrototypeStudio() {
                         <ManifiestoSection/>
                     </div>
                     <WorksSection />
+                    <div className="h-screen w-full"/>
                 </div>
             </div>
         </>
