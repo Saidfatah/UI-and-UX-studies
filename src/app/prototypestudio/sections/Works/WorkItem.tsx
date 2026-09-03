@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 // import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import type { WorkItem as WorkItemType } from "./types";
@@ -14,6 +14,9 @@ type Props = WorkItemType & {
 const WorkItem = (item: Props) => {
     const imageRef = useRef<HTMLDivElement>(null);
     const itemRef = useRef<HTMLDivElement>(null);
+
+    const [imageIsLoaded, setImageIsLoaded] = useState(false);
+    const [videoIsLoaded, setVideoIsLoaded] = useState(false);
 
     // useEffect(() => {
     //     if (!itemRef.current || !imageRef.current) return;
@@ -50,13 +53,21 @@ const WorkItem = (item: Props) => {
             ref={itemRef}
             className={[
                 "works-item relative w-full pointer-events-auto",
-                item.active ? "active" : "",
+                
             ]
                 .filter(Boolean)
                 .join(" ")}
         >
             <a
-                className="card-work group works-item-inner flex flex-col gap-y-10 is-loaded"
+                className={
+                    [
+                        "card-work group works-item-inner flex flex-col gap-y-10 is-loaded",
+                        imageIsLoaded && videoIsLoaded ? "is-loaded" : "",
+                        item.active ? "active" : "",
+                    ]
+                    .filter(Boolean)
+                    .join(" ")
+                }
                 href={item.href}
                 aria-label={item.title}
             >
@@ -80,21 +91,28 @@ const WorkItem = (item: Props) => {
                                     height="150"
                                     alt={item.imgAlt}
                                     src={item.imageSrc}
+                                    onLoad={() => setImageIsLoaded(true)}
                                 />
                             </figure>
                         </div>
 
+
                         <video
-                            className="card-work-video absolute-full object-cover"
+                            className={[
+                                "card-work-video absolute-full object-cover",
+                                "opacity-0 z-1 transition-opacity duration-smooth ease-out",
+                                "group-[.is-loaded.active]:opacity-100 group-[.is-loaded]:hover:opacity-100"
+                            ].join(" ")}
                             autoPlay
                             loop
                             muted
                             playsInline
                             src={item.videoSrc}
+                            onLoad={() => setVideoIsLoaded(true)}
                         />
                     </div>
 
-                    <div className="works-item-overlay absolute-full bg-white opacity-50 pointer-events-none" />
+                    <div className="works-item-overlay absolute-full bg-white opacity-50 group-[.active]:opacity-0 pointer-events-none" />
                 </div>
 
                 <div className="flex flex-col gap-y-[0.8rem] xl:hidden">
