@@ -1,6 +1,36 @@
 import { WorkItem } from "./types";
 
 
+export const initialStates = {
+    firstWorkItemInner:{
+        yPercent: 50,
+        scale: 0.9,
+    },
+    secondWorkItemInner:{
+        yPercent: 20,
+        scale: 0.95,
+    },
+    thirdWorkItemInner:{
+        yPercent: 7,
+        scale: 0.97,
+    },
+};
+export const targetStates = {
+    firstWorkItemInner:{
+        yPercent: 0,
+        scale: 1,
+    },
+    secondWorkItemInner:{
+        yPercent: 0,
+        scale: 1,
+    },
+    thirdWorkItemInner:{
+        yPercent: 0,
+        scale: 1,
+    },
+};
+
+
 export const workItems: WorkItem[] = [
     {
         imageSrc: "https://www.prototypestudio.fr/wp-content/uploads/2025/02/img_principale-1-480x270.jpg",
@@ -33,7 +63,7 @@ export const workItems: WorkItem[] = [
         client: "Linvosges"
     },
     {
-        imageSrc: "/images/prototypestudio/riviera_cover-480x270.jpg",
+        imageSrc: "/images/prototypestudio/riviera_cover-480x270.webp",
         imageAspectRatio: "56.2109375%",
         imgAlt: "Malmaison Riviera",
         videoSrc: "/videos/prototypestudio/loop_riviera.mp4",
@@ -43,7 +73,7 @@ export const workItems: WorkItem[] = [
         client: "Christofle"
     },
     {
-        imageSrc: "/images/prototypestudio/img_principale-480x269.jpg",
+        imageSrc: "/images/prototypestudio/img_principale-480x269.webp",
         imageAspectRatio: "56.1328125%",
         imgAlt: "The Light You Feel",
         videoSrc: "/videos/prototypestudio/Boucle_Lutron_compressed.mp4",
@@ -53,7 +83,7 @@ export const workItems: WorkItem[] = [
         client: "Lutron"
     },
     {
-        imageSrc: "/images/prototypestudio/Beau_main2-480x270.jpg",
+        imageSrc: "/images/prototypestudio/Beau_main2-480x270.webp",
         imageAspectRatio: "56.25%",
         imgAlt: "Parco x Miu Miu",
         videoSrc: "/videos/prototypestudio/Boucle_Beaumag.mp4",
@@ -63,7 +93,7 @@ export const workItems: WorkItem[] = [
         client: "Beau Magazine"
     },
     {
-        imageSrc: "/images/prototypestudio/img_principale-480x270.jpeg",
+        imageSrc: "/images/prototypestudio/img_principale-480x270.webp",
         imageAspectRatio: "56.328125%",
         imgAlt: "Abyssae",
         videoSrc: "/videos/prototypestudio/Boucle_Abyssae_compressed.mp4",
@@ -73,7 +103,7 @@ export const workItems: WorkItem[] = [
         client: "L’artisan parfumeur"
     },
     {
-        imageSrc: "/images/prototypestudio/Capture-decran-2026-01-25-a-15.55.17-480x269.jpg",
+        imageSrc: "/images/prototypestudio/Capture-decran-2026-01-25-a-15.55.17-480x269.webp",
         imageAspectRatio: "55.9375%",
         imgAlt: "Boredom on Set",
         videoSrc: "/videos/prototypestudio/carton_olivia_loop.mp4",
@@ -83,7 +113,7 @@ export const workItems: WorkItem[] = [
         client: "Carton Magazine"
     },
     {
-        imageSrc: "/images/prototypestudio/img_principale-2-480x270.jpeg",
+        imageSrc: "/images/prototypestudio/img_principale-2-480x270.webp",
         imageAspectRatio: "56.328125%",
         imgAlt: "Home Collection",
         videoSrc: "/videos/prototypestudio/Boucle_Hermes_compressed.mp4",
@@ -93,7 +123,7 @@ export const workItems: WorkItem[] = [
         client: "Hermes"
     },
     {
-        imageSrc: "/images/prototypestudio/Copie-de-LV_Image1-480x269.jpg",
+        imageSrc: "/images/prototypestudio/Copie-de-LV_Image1-480x269.webp",
         imageAspectRatio: "56.1328125%",
         imgAlt: "Dualtime",
         videoSrc: "/videos/prototypestudio/Boucle_LV_compressed.mp4",
@@ -103,7 +133,7 @@ export const workItems: WorkItem[] = [
         client: "Louis Vuitton"
     },
     {
-        imageSrc: "/images/prototypestudio/Pusspuss_vignetteprincipale-480x270.jpg",
+        imageSrc: "/images/prototypestudio/Pusspuss_vignetteprincipale-480x270.webp",
         imageAspectRatio: "56.25%",
         imgAlt: "Nothing is static",
         videoSrc: "/videos/prototypestudio/Boucle_pusspuss_compressed.mp4",

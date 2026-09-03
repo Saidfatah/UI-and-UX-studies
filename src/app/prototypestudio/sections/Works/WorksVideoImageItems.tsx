@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { workItems } from "./utils";
+import { initialStates, targetStates, workItems } from "./works.utils";
 import WorkItem from "./WorkItem";
 import { remToPixel } from "../../util";
+import gsap from "gsap";
+
 
 function WorksVideoImageItems() {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -15,17 +17,40 @@ function WorksVideoImageItems() {
 
     useEffect(() => {
         const scrollerElement = document.querySelector(".main");
+        // const namesWrapper = document.querySelector(".works-names");
+        // const categoriesWrapper = document.querySelector(".works-categories");
 
+        const titles = document.querySelectorAll(".works-item-title");
+        const titlesWrapper = document.querySelector(".works-titles");
+        const titlesContainer = document.querySelector(".works-categories");
+
+        const $items = document.querySelectorAll(".works-item");
+        const $itemsInner = document.querySelectorAll(".works-item-inner");
+
+        console.log($itemsInner)
+        // if (!scrollerElement || !namesWrapper || !categoriesWrapper) return;
         if (!scrollerElement) return;
 
-        const headerheight = remToPixel(5.5);
-        const triggers = workItems.map((_, index) => {
-            const el = document.querySelector(
-                `[data-work-index="${index}"]`
-            );
+        if (!$items || $items.length === 0 || !$itemsInner || $itemsInner.length === 0) return;
+        // console.log($itemsInner[0])
 
-            if (!el) return null;
-            
+
+        const headerheight = remToPixel(5.5);
+
+        const triggers = Array.from($items).map((el, index) => {
+            const workTitleElement = titles[index]
+
+            if (workTitleElement && titlesContainer && titlesWrapper) {
+                const titleTranslateYAnimationTimeline = gsap.timeline();
+
+                titleTranslateYAnimationTimeline.to(workTitleElement, {
+                    y: () =>
+                        -(titlesContainer.getBoundingClientRect().height -
+                            titlesWrapper.getBoundingClientRect().height),
+                });
+            }
+
+
             return ScrollTrigger.create({
                 scroller: scrollerElement,
                 trigger: el,
@@ -33,19 +58,99 @@ function WorksVideoImageItems() {
                 end: workItems.length - 1 === index ? "center 30%" : "bottom 25%",
                 markers: index === 0 ? true : false,
                 invalidateOnRefresh: true,
+                // animation: titleTranslateYAnimationTimeline,
                 onEnter: () => {
+                    // we pnly want to trigger fade in animation for the categories and names
+                    // only when the first work item is triggered 
+                    // if (index === 0) {
+                    //     const tl = gsap.timeline();
+                    //     tl.to([categoriesWrapper, namesWrapper], {
+                    //         autoAlpha: 1,
+                    //         duration: .4,
+                    //         ease: "beaucoup.alpha"
+                    //     })
+                    // }
+
+                    // Ln.set([e.name, e.category], {
+                    //     autoAlpha: 0
+                    // })
+
                     setActiveIndex(index);
                 },
                 onLeaveBack: () => {
                     if (index > 0) {
                         setActiveIndex(index - 1);
                     }
+                    if (index === 0) {
+                        // const tl = gsap.timeline();
+                        // tl.to([categoriesWrapper, namesWrapper], {
+                        //     autoAlpha: 0,
+                        //     duration: .4,
+                        //     ease: "beaucoup.alpha"
+                        // })
+                    }
                 },
             });
         });
 
+
+
+        gsap.set($itemsInner[0], {
+            ...initialStates.firstWorkItemInner
+        })
+        gsap.set($itemsInner[1], {
+            ...initialStates.secondWorkItemInner
+        })
+        gsap.set($itemsInner[2], {
+            ...initialStates.thirdWorkItemInner
+        })
+
+        // scroll triger for teh first 3 work items transition animation for the entery point 
+        const firstAppearScrolltrigger = ScrollTrigger.create({
+            trigger: $items[0],
+            scroller: scrollerElement,
+            start: "top bottom",
+            end: "top center",
+            scrub: true,
+            animation: gsap.fromTo($itemsInner[0], {
+                ...initialStates.firstWorkItemInner
+            }, {
+                ...targetStates.firstWorkItemInner
+            })
+        })
+
+        const secondAppearScrolltrigger = ScrollTrigger.create({
+            trigger: $items[1],
+            scroller: scrollerElement,
+            start: "top bottom",
+            end: "top center",
+            scrub: true,
+            animation: gsap.fromTo($itemsInner[1], {
+                ...initialStates.secondWorkItemInner
+            }, {
+                ...targetStates.secondWorkItemInner
+            })
+        })
+
+        const thirdAppearScrolltrigger = ScrollTrigger.create({
+            trigger: $items[2],
+            scroller: scrollerElement,
+            start: "top bottom",
+            end: "top center",
+            scrub: true,
+            animation: gsap.fromTo($itemsInner[2], {
+                ...initialStates.thirdWorkItemInner
+            }, {
+                ...targetStates.thirdWorkItemInner
+            })
+        })
+
         return () => {
             triggers.forEach((trigger) => trigger?.kill());
+
+            firstAppearScrolltrigger?.kill();
+            secondAppearScrolltrigger?.kill();
+            thirdAppearScrolltrigger?.kill();
         };
     }, []);
 
