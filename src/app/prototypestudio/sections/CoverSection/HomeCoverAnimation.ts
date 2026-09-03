@@ -4,7 +4,6 @@ import { remToPixel } from "../../util";
 class HomeCoverAnimation {
     private section: HTMLElement;
 
-    private title!: HTMLElement;
     private lines!: HTMLElement[];
     private firstLineChars!: HTMLElement[];
     private remainingChars!: HTMLElement[];
@@ -18,10 +17,6 @@ class HomeCoverAnimation {
     }
 
     init() {
-        this.title = this.section.querySelector(
-            ".home-cover-title"
-        ) as HTMLElement;
-
         this.lines = gsap.utils.toArray<HTMLElement>(
             ".home-cover-title .line",
             this.section
@@ -57,7 +52,7 @@ class HomeCoverAnimation {
     }
 
     private setInitialState() {
-        const [ line1,line2, line3,line4] = this.lines;
+        const [ _,line2, line3,line4] = this.lines;
 
         
 
@@ -88,15 +83,6 @@ class HomeCoverAnimation {
             x: "5rem",
             opacity: 0,
         });
-
-
-    console.log(
-    getComputedStyle(this.scrollChars[0]).transform
-);
-
-console.log(
-    gsap.getProperty(this.scrollChars[0], "x", "px")
-);
     }
 
     private createAnimation() {
