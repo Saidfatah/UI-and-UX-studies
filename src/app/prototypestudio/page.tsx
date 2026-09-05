@@ -14,6 +14,7 @@ import Lenis from "lenis";
 import { useCallback, useEffect, useRef } from "react";
 import WorksSection from "./sections/Works";
 import ServicesSection from "./sections/ServicesSection";
+import Footer from "./sections/Footer";
 
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
@@ -112,6 +113,7 @@ function PrototypeStudio() {
                     </div>
                     <WorksSection />
                     <ServicesSection/>
+                    <Footer/>
                 </div>
             </div>
         </>

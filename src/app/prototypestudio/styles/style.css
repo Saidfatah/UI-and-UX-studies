@@ -266,6 +266,11 @@ video {
     line-height: 100%;
 }
 
+.body-80 {
+        font-size: 8rem;
+        line-height: 87.5%;
+}
+
 .body-180 {
         font-size: 18rem;
         line-height: 77.77%;
@@ -274,6 +279,14 @@ video {
 
 .mb-60{
     margin-bottom: 6rem;
+}
+
+
+.pt-10 {
+    padding-top: 1rem;
+}
+.pb-20 {
+    padding-bottom: 2rem;
 }
 
 .pb-12 {
@@ -296,6 +309,9 @@ video {
     margin-top: 5rem;
 }
 
+.mt-200{
+    margin-top: 20rem;
+}
 
 
 
@@ -306,6 +322,11 @@ video {
 .gap-x-20{
     -moz-column-gap: 2rem;
     column-gap: 2rem;
+}
+
+
+.gap-y-80 {
+    row-gap: 8rem;
 }
 
 .gap-y-10 {
