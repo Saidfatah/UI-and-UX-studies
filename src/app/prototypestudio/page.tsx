@@ -13,6 +13,7 @@ import ManifiestoSection from "./sections/ManifiestoSection";
 import Lenis from "lenis";
 import { useCallback, useEffect, useRef } from "react";
 import WorksSection from "./sections/Works";
+import ServicesSection from "./sections/ServicesSection";
 
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
@@ -110,7 +111,7 @@ function PrototypeStudio() {
                         <ManifiestoSection/>
                     </div>
                     <WorksSection />
-                    <div className="h-screen w-full"/>
+                    <ServicesSection/>
                 </div>
             </div>
         </>

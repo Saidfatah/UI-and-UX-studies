@@ -261,6 +261,10 @@ video {
 }
 
 
+.mb-60{
+    margin-bottom: 6rem;
+}
+
 .pb-12 {
     padding-bottom: 1.2rem;
 }
@@ -285,6 +289,11 @@ video {
     -moz-column-gap: 2rem;
     column-gap: 2rem;
 }
+
+.gap-y-20 {
+    row-gap: 2rem;
+}
+
 
 .pt-container {
     padding-top: var(--padding-container);
@@ -391,7 +400,7 @@ video {
 
  
 
-.home-cover-title .word {
+.home-cover-title .word , .services-title-1, .services-title-2 {
     perspective: 500px;
 }
 
@@ -401,10 +410,14 @@ video {
 }
 
 
-.home-cover-title .char {
+.home-cover-title .char, 
+.services-title-1 .char,
+.services-title-2 .char {
+    display: inline-block;
     transform-style: preserve-3d;
     backface-visibility: hidden;
 }
+
 
 
 .title {
