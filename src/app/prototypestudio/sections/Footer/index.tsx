@@ -156,7 +156,7 @@ function Footer() {
 
             <div className="footer-items list-o col-span-4 flex flex-col justify-end items-end gap-y-15">
                 <a href="https://www.prototypestudio.fr/works" className="footer-item list-o-item body-120 !leading-[90%] uppercase">
-                    <span className="pointer-events-none">Works</span>ﬂ
+                    <span className="pointer-events-none">Works</span>
                 </a>
                 <a href="https://www.prototypestudio.fr/about/" className="footer-item list-o-item body-120 !leading-[90%] uppercase mt-[-2rem]">
                     <span className="pointer-events-none">About</span>

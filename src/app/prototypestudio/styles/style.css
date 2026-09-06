@@ -572,6 +572,22 @@ video {
 
 
 @media (hover: hover) {
+    .group:hover .button:before {
+        --tw-scale-x:1;
+        transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+        transform-origin: left;
+        transition: transform .6s var(--ease-out) .15s,background-color .6s var(--ease-out) 0s
+    }
+
+    .group:hover .button:after {
+        --tw-scale-x: 0;
+        transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+        transform-origin: right;
+        transition: transform .6s var(--ease-out) 0s,background-color .6s var(--ease-out) 0s
+    }
+}
+
+@media (hover: hover) {
     .button:hover:before {
         --tw-scale-x:1;
         transform: translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
