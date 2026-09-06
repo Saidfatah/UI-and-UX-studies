@@ -97,7 +97,7 @@ function PrototypeStudio() {
         <>
             <Header HeaderRefProps={headerRef} />
             <LoaderFade />
-            <TarteAuCitronToast />
+            {/* <TarteAuCitronToast /> */}
 
             <div
                 ref={mainRef}
