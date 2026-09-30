@@ -1,0 +1,41 @@
+.root {
+    padding-top: round(12.5rem, 1px);
+    row-gap: 0;
+}
+
+.title {
+    font-size: round(5rem, 1px);
+    font-weight: 400;
+    line-height: round(115%, 1px);
+
+    margin-top: 0;
+    margin-bottom: 7rem;
+
+    // margin: 0 0 round(-3.125rem, 1px);
+
+    display: flex;
+    flex-direction: column;
+
+    grid-column-end: 11;
+    grid-column-start: 1;
+
+    >span {
+        min-height: calc(round(5rem, 1px) * 1.15);
+    }
+
+    >span span {
+        color: var(--color-accent);
+        display: none;
+    }
+
+}
+
+.hero {
+    grid-column: 1 / -1 !important;
+
+    video {
+        height: auto;
+        width: 100%;
+    }
+}
+
