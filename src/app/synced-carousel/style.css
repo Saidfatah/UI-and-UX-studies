@@ -1,0 +1,96 @@
+.image-carousel {
+    --carousel-width: 50vw;
+    --carousel-height: 500px;
+    --thumb-size: 80px;
+    --thumb-gap: 20px;
+    --display-item-gap: 42px;
+    --content-gap: 120px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--content-gap);
+    width: max-content;
+    margin: 0 auto;
+}
+
+/* ------------------------------------------------------------
+   Left side: thumbnail navigation
+   ------------------------------------------------------------ */
+
+.image-carousel__items {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.image-carousel__items-track {
+    position: relative;
+}
+
+.image-carousel__thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: var(--thumb-gap);
+}
+
+.image-carousel__thumbnail {
+    position: relative;
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    overflow: hidden;
+}
+
+.image-carousel__thumbnail img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/*
+ * This is the moving active-state box.
+ *
+ * It is positioned over the first thumbnail and GSAP moves it
+ * using transform3d / translateY.
+ */
+.image-carousel__active-box {
+    position: absolute;
+    z-index: 2;
+    top: -10px;
+    left: -10px;
+    width: calc(var(--thumb-size) + 20px);
+    height: calc(var(--thumb-size) + 20px);
+    border: 1px solid currentColor;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* ------------------------------------------------------------
+   Right side: main carousel
+   ------------------------------------------------------------ */
+
+.image-carousel__display {
+    width: var(--carousel-width);
+    height: var(--carousel-height);
+    overflow: hidden;
+}
+
+.image-carousel__display-track {
+    width: 100%;
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+    gap: var(--display-item-gap);
+}
+
+.image-carousel__slide {
+    width: 100%;
+    height: var(--carousel-height);
+    overflow: hidden;
+}
+
+.image-carousel__slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
