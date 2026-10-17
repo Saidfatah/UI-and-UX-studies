@@ -15,6 +15,7 @@
     --color-text: var(--color-white);
     --color-background: var(--color-black);
 
+    transition-property: --color-text, --color-background;
     transition-duration: 1.6s;
     transition-timing-function: cubic-bezier(.22, 1, .36, 1);
 

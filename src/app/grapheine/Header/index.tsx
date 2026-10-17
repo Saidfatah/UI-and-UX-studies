@@ -1,54 +1,49 @@
 "use client"
 import { useEffect, useRef } from 'react';
 import styles from './header.module.scss'
+import {gsap} from 'gsap'
+import {ScrollTrigger} from 'gsap/ScrollTrigger'
 
 function Header() {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const previousScroll = useRef({
-        y: 0,
-        time: performance.now(),
-    });
 
     useEffect(() => {
-        const handleScroll = () => {
-            const now = performance.now();
-            const currentY = window.scrollY;
+        const html = document.documentElement
+        const headerContainer = containerRef.current
 
-            const previous = previousScroll.current;
+        if (!headerContainer) return;
+        if (!html) return;
 
-            const deltaY = currentY - previous.y;
-            const deltaTime = now - previous.time;
 
-            const velocity = deltaY / deltaTime;
+        const animation = gsap.from(headerContainer, {
+            yPercent: -100,
+            paused: true,
+            duration: 0.4,
+        }).progress(1);
 
-            const container = containerRef.current;
+        ScrollTrigger.create({
+            start: "top top",
+            end: "max",
+            scroller:html,
+            onUpdate: (self) => {
+                const velocity = self.getVelocity();
 
-            if (!container) return;
+                // Fast downward scroll → hide header
+                if (velocity >= 300 && self.direction === 1) {
+                    animation.reverse();
+                    return;
+                }
 
-            // Fast upward scroll → show
-            if (velocity < -0.8) {
-                container.style.transition = "all 0.7s cubic-bezier(0.33, 1, 0.68, 1)";
-                container.style.transform = "translateY(0)";
-            }
-
-            // Fast downward scroll → hide
-            if (velocity > 0.8) {
-                container.style.transition = "all 0.7s cubic-bezier(0.65, 0, 0.35, 1)";
-                container.style.transform = "translateY(-100%)";
-            }
-
-            previousScroll.current = {
-                y: currentY,
-                time: now,
-            };
-        };
-
-        window.addEventListener("scroll", handleScroll, { passive: true });
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
+                // Fast upward scroll OR near top → show header
+                if (
+                    (velocity <= -300 && self.direction === -1) ||
+                    window.scrollY <= 52
+                ) {
+                    animation.play();
+                }
+            },
+        });
     }, []);
 
     return (
@@ -56,9 +51,6 @@ function Header() {
             <div
                 className={styles.header__container}
                 ref={containerRef}
-            // style={{
-            //     transform: "translateY(-100%)"
-            // }}
             >
                 <a className={styles.header__logo} href="https://grapheine.com/en/" aria-label="Homepage">
                     <svg viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg">
