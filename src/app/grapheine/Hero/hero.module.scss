@@ -8,8 +8,7 @@
     font-weight: 400;
     line-height: round(115%, 1px);
 
-    margin-top: 0;
-    margin-bottom: 7rem;
+    margin-bottom: -3.125rem;
 
     // margin: 0 0 round(-3.125rem, 1px);
 
@@ -32,6 +31,8 @@
 
 .hero {
     grid-column: 1 / -1 !important;
+
+    transform: translateY(round(6.25rem, 1px));
 
     video {
         height: auto;

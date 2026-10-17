@@ -83,7 +83,7 @@ function HeroSection() {
         const title = titleRef.current;
 
         const scrollTrigger = gsap.to(hero, {
-            y: -remToPixel(6),
+            y: 0,
             ease: "none",
             scrollTrigger: {
                 trigger: document.body,
