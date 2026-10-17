@@ -1,0 +1,180 @@
+:root {
+    --duration-hover: 0.12s;
+    --duration-motion: 0.5s;
+    --ease-motion: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --color-surface: #fff;
+    --color-bg: #f0eee8;
+
+    --font-note: "Nanum Pen Script", cursive;
+}
+
+
+@font-face {
+    font-family: Nanum Pen Script;
+    src: url(/fonts/nanum-pen-script.woff2) format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+
+body {
+    background-color: var(--color-bg);
+}
+
+/* ultilities  */
+.bg-surface {
+    background-color: var(--color-surface);
+}
+
+.border-surface {
+    border-color: var(--color-surface);
+}
+
+.rounded-card {
+    border-radius: 2rem;
+}
+
+
+
+.type-note {
+    font-family: var(--font-note);
+    font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+
+.photos {
+    --postcard-height: 17.5rem;
+    padding-block: 2rem;
+}
+
+.photos> :not(:first-child) {
+    margin-left: -4rem;
+}
+
+
+.postcard {
+    perspective: 1000px;
+    touch-action: manipulation;
+}
+
+.postcard:hover {
+    animation: subtleBlur var(--duration-motion) ease-out both;
+}
+
+.motion {
+    transition-duration: var(--duration-motion);
+    transition-timing-function: var(--ease-motion);
+    transition-delay: 0s;
+}
+
+
+/* frame */
+
+.postcard[data-flipped=true] .frame {
+    transform: translateY(-20px);
+}
+
+
+.frame,
+.flip {
+    transform-style: preserve-3d;
+    transition-property: transform, translate;
+    transition-duration: var(--duration-motion);
+}
+
+
+/* flip */
+
+.postcard[data-flipped=true] .flip {
+    transform: rotateY(180deg);
+}
+
+/* for a stringer shadow for when we hover */
+.flip:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: inherit;
+    box-shadow: var(--shadow-raised);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-motion) var(--ease-motion);
+}
+
+.postcard:hover .flip:before {
+    opacity: 1;
+}
+
+
+/* faces  */
+.face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.back {
+    transform: rotateY(180deg);
+
+    /* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
+}
+
+.write {
+    /* to wait till the backface shows up , we need to delay by half the the flip animation's duration  */
+    --write-delay: calc(var(--duration-motion) / 2 - calc(var(--duration-motion) / 4) );
+    --write-interval: 18ms;
+}
+
+.word {
+    display: inline-block;
+}
+
+.letter {
+    opacity: 0;
+}
+
+.write[data-active=true] .letter {
+    animation: ink var(--duration-hover) ease-out both;
+
+    /* stagger effect */
+    animation-delay: calc(var(--write-delay) + var(--letter) * var(--write-interval));
+}
+
+@keyframes ink {
+    0% {
+        opacity: 0;
+        filter: blur(12px);
+    }
+
+    to {
+        opacity: 1;
+        filter: blur(0px);
+    }
+}
+
+@keyframes subtleBlur {
+    15% {
+        filter: blur(12px);
+    }
+
+    30% {
+        filter: blur(0px);
+    }
+
+    40% {
+        filter: blur(0px);
+    }
+
+
+    100% {
+        filter: blur(0px);
+    }
+
+
+}
