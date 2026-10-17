@@ -1,13 +1,14 @@
+
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Vector = {
     x: number;
     y: number;
 };
 
-function normalize(vector: Vector) {
+function normalize(vector: Vector): Vector {
     const length = Math.hypot(vector.x, vector.y);
 
     return {
@@ -23,184 +24,273 @@ function createRandomDirection(): Vector {
     });
 }
 
-const imageSrcs = [
-    "/images/saidFatahImage.jpeg",
-    "/images/Flag_of_Morocco.png",
-]
+const imageWidth = (700 - (8 * 6)) / 6;
+const imageHeight = imageWidth / (3 / 2);
 
-const imageWidth = 300;
+class ImageBouncer {
+    private images: HTMLImageElement[];
+    private container: HTMLDivElement;
 
-const getImageHeight = () => {
-    const aspectRatio = 3 / 2;
+    private containerWidth: number;
+    private containerHeight: number;
 
-    return imageWidth / aspectRatio;
-};
+    private idleSpeed = 100;
+    private steering = 0.1;
 
-const imageHeight = getImageHeight()
+    private canStartTransition = false;
+    private transitionFactor = 1;
 
-export default function Poster() {
-    const posterRef = useRef<HTMLImageElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    private directions: Vector[];
+    private velocities: Vector[];
+    private origins: Vector[];
+    private positions: Vector[];
 
-    useEffect(() => {
-        const poster = posterRef.current;
-        const container = containerRef.current;
+    private previousTime = performance.now();
 
-        if (!container || !poster) return;
+    constructor(
+        images: HTMLImageElement[],
+        container: HTMLDivElement
+    ) {
+        this.images = images;
+        this.container = container;
+        this.containerWidth = container.offsetWidth;
+        this.containerHeight = container.offsetHeight;
 
-        let hasRevealed = false;
+        this.directions = images.map(() => createRandomDirection());
 
-        const containerWidth = container.offsetWidth;
-        const containerHeight = container.offsetHeight;
-
-        let currentSrcIndex = 0;
-
-        // intialize stuff
-        poster.src = imageSrcs[currentSrcIndex]
-        poster.classList.add('absolute')
-
-        poster.style.top = '0';
-        poster.style.left = '0';
-
-        let _position = {
-            x: Math.random() * (containerWidth - imageWidth),
-            y: Math.random() * (containerHeight - imageHeight),
-        };
-
-
-
-        const _idleDirection = createRandomDirection();
-
-        const _idleSpeed = 100;
-
-
-        const steering = 0.1;
-
-        const _velocity = {
+        this.velocities = images.map(() => ({
             x: 0,
             y: 0,
-        };
+        }));
 
 
-        let previousTime = performance.now();
+        const containerRect = container.getBoundingClientRect();
+        this.origins = images.map((image) => {
+            const parentDiv = image.parentElement?.parentElement
 
-        function switchImage() {
-            if (!poster) return;
+            const rect = parentDiv?.getBoundingClientRect() ?? { left: 0, top: 0 };
 
-            currentSrcIndex = currentSrcIndex === 0 ? 1 : 0;
-            poster.src = imageSrcs[currentSrcIndex];
-        }
+            return {
+                x: rect.left - containerRect.left,
+                y: rect.top - containerRect.top,
+            };
+        });
 
+        this.positions = images.map(() => ({
+            x: Math.random() * (this.containerWidth - imageWidth),
+            y: Math.random() * (this.containerHeight - imageHeight),
+        }));
 
-        function onRaf(time: number) {
-            const elapsedTime = (time - previousTime) / 1000;
-            previousTime = time;
+        this.images.forEach((image) => {
+            image.classList.add('absolute');
 
+            image.style.width = `${imageWidth}px`;
+            image.style.height = `${imageHeight}px`;
+
+            image.style.opacity = "1"
+        });
+    }
+
+    start() {
+        requestAnimationFrame(this.onRaf);
+    }
+
+    startTransition() {
+        this.canStartTransition = true
+    }
+
+    private onRaf = (time: number) => {
+        const elapsedTime = (time - this.previousTime) / 1000;
+
+        this.previousTime = time;
+
+        this.images.forEach((image, index) => {
+            const direction = this.directions[index];
+            const velocity = this.velocities[index];
+            const position = this.positions[index];
+
+            // --------------------------------
+            // 1. Steer velocity
+            // --------------------------------
 
             const targetVelocity = {
-                x: _idleDirection.x * _idleSpeed,
-                y: _idleDirection.y * _idleSpeed,
+                x: direction.x * this.idleSpeed,
+                y: direction.y * this.idleSpeed,
             };
 
-
-            _velocity.x +=
-                (targetVelocity.x - _velocity.x) *
-                steering *
+            velocity.x +=
+                (targetVelocity.x - velocity.x) *
+                this.steering *
                 elapsedTime;
 
-            _velocity.y +=
-                (targetVelocity.y - _velocity.y) *
-                steering *
+            velocity.y +=
+                (targetVelocity.y - velocity.y) *
+                this.steering *
                 elapsedTime;
 
-            // accelaration += (elapsedTime / 1000) * 5;
-
-
-            _position.x += _velocity.x * elapsedTime;
-            _position.y += _velocity.y * elapsedTime;
-
             // --------------------------------
-            // 4. Container boundaries
+            // 2. Move wandering position
             // --------------------------------
 
-            if (!container) return;
+            position.x += velocity.x * elapsedTime;
+            position.y += velocity.y * elapsedTime;
+
+            // --------------------------------
+            // 3. Boundaries
+            // --------------------------------
 
             const minX = 0;
-            const maxX = containerWidth - imageWidth;
+            const maxX = this.containerWidth - imageWidth;
 
             const minY = 0;
-            const maxY = containerHeight - imageHeight;
+            const maxY = this.containerHeight - imageHeight;
 
-            let hitBoundary = false;
-
-            // Hit top
-            if (_position.y <= minY) {
-                _position.y = minY;
-                _idleDirection.y *= -1;
-                _velocity.y *= -1;
-                hitBoundary = true;
+            if (position.y <= minY) {
+                position.y = minY;
+                direction.y *= -1;
+                velocity.y *= -1;
             }
 
-            // Hit bottom
-            if (_position.y >= maxY) {
-                _position.y = maxY;
-                _idleDirection.y *= -1;
-                _velocity.y *= -1;
-                hitBoundary = true;
+            if (position.y >= maxY) {
+                position.y = maxY;
+                direction.y *= -1;
+                velocity.y *= -1;
             }
 
-            // Hit left
-            if (_position.x <= minX) {
-                _position.x = minX;
-                _idleDirection.x *= -1;
-                _velocity.x *= -1;
-                hitBoundary = true;
+            if (position.x <= minX) {
+                position.x = minX;
+                direction.x *= -1;
+                velocity.x *= -1;
             }
 
-            // Hit right
-            if (_position.x >= maxX) {
-                _position.x = maxX;
-                _idleDirection.x *= -1;
-                _velocity.x *= -1;
-                hitBoundary = true;
+            if (position.x >= maxX) {
+                position.x = maxX;
+                direction.x *= -1;
+                velocity.x *= -1;
             }
 
-            if (hitBoundary) {
-                hitBoundary = false
-                switchImage();
+            // --------------------------------
+            // 4. Transition
+            // --------------------------------
+
+            if (this.canStartTransition) {
+                this.transitionFactor -= elapsedTime;
+
+                if (this.transitionFactor < 0) {
+                    this.transitionFactor = 0;
+                }
             }
 
-            if (!poster) return;
+            // --------------------------------
+            // 5. Render
+            // --------------------------------
 
-            poster.style.transform = `translate(
-                ${_position.x}px,
-                ${_position.y}px
-            )`;
+            const origin = this.origins[index]
+            const x =
+                origin.x +
+                (position.x - origin.x) * this.transitionFactor;
 
-            if (!hasRevealed) {
-                poster.style.transition = "opacity 2s cubic-bezier(0.65, 0, 0.35, 1)"
-                poster.style.opacity = "1"
-            }
+            const y =
+                origin.y +
+                (position.y - origin.y) * this.transitionFactor;
 
-            requestAnimationFrame(onRaf);
-        }
+            image.style.transform = `
+            translate(${x}px, ${y}px)
+        `;
+        });
 
-        requestAnimationFrame(onRaf);
-    }, []);
+        requestAnimationFrame(this.onRaf);
+    };
+}
+
+export default function Poster() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [startIntroTransition, setStartIntroTransition] = useState(false);
+
+    useEffect(() => {
+        const container = containerRef.current;
+
+        if (!container) return;
+
+        const images = Array.from(
+            container.querySelectorAll<HTMLImageElement>('img')
+        );
+
+        const bouncer = new ImageBouncer(images, container);
+
+        if (startIntroTransition) bouncer.startTransition()
+
+        bouncer.start();
+    }, [startIntroTransition]);
 
     return (
         <div className="relative flex justify-center items-center w-screen h-screen overflow-hidden">
-
             <div
+                onClick={() => {
+                    setStartIntroTransition(true);
+                }}
                 ref={containerRef}
-                className="relative bg-black flex justify-center items-center w-[700px] h-[500px] overflow-hidden"
+                className="relative bg-black grid grid-cols-6 grid-rows-2 gap-2 w-[700px] h-[500px] overflow-hidden"
             >
-                <img
-                    ref={posterRef}
-                    alt=""
-                    className=" opacity-0 w-[300px] aspect-[3/2] object-cover"
-                />
+                {/* Row 1 — spacer */}
+                {/* <div /> */}
+
+                <div className="col-span-1 col-start-4 bg-red-50">
+                    <div className=''>
+                        <img
+                            alt=""
+                            src="/images/saidFatahImage.jpeg"
+                            className="opacity-0 w-full h-auto object-cover"
+                        />
+                    </div>
+                </div>
+
+                {/*
+                <div className="col-span-2 col-start-5">
+                    <img
+                        alt=""
+                        src="/images/saidFatahImage.jpeg"
+                        className="opacity-100 w-full h-auto object-cover"
+                    />
+                </div>
+
+                <div className="col-span-2" />
+
+                <div className="col-span-1">
+                    <img
+                        alt=""
+                        src="/images/saidFatahImage.jpeg"
+                        className="opacity-100 w-full h-auto object-cover"
+                    />
+                </div>
+
+                <div className="col-span-1" />
+
+                <div className="col-span-1">
+                    <img
+                        alt=""
+                        src="/images/saidFatahImage.jpeg"
+                        className="opacity-100 w-full h-auto object-cover"
+                    />
+                </div>
+
+                <div className="col-span-1">
+                    <img
+                        alt=""
+                        src="/images/saidFatahImage.jpeg"
+                        className="opacity-100 w-full h-auto object-cover"
+                    />
+                </div>
+
+                <div className="col-span-1">
+                    <img
+                        alt=""
+                        src="/images/saidFatahImage.jpeg"
+                        className="opacity-100 w-full h-auto object-cover"
+                    />
+                </div> */}
             </div>
         </div>
     );
 }
+
