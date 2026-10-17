@@ -9,7 +9,7 @@ const images = [
 ]
 
 function Page() {
-    return (<div className="flex justify-center items-center w-screen h-screen">
+    return (<div className="flex bg-black justify-center items-center w-screen h-screen">
         <ImageCarousel images={images} />
     </div>);
 }
