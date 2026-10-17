@@ -1,0 +1,137 @@
+@import url('https://fonts.cdnfonts.com/css/pp-neue-montreal');
+
+body{
+    will-change: opacity;
+    opacity: 1;
+    transition: opacity 2s ease-in-out;
+    font-family: 'PP Neue Montreal', sans-serif !important;
+    background: black;
+}
+
+::-webkit-scrollbar{
+    display: none;
+}
+
+.page{
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    
+    
+    gap:2.75rem;
+    background: white;
+    
+}
+
+.page-container{
+    padding-top: 56px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+nav{
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    z-index: 2;
+    height: 56px;
+}
+
+.nav-right-items{
+    display: flex;
+    align-items: center;    
+}
+
+.nav-item{
+    height: 100%;
+    display: flex;
+    padding: 0rem 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+.hero-title{
+    visibility: hidden;
+    opacity: 0;
+    font-size: 12rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 100%;
+}
+
+
+
+
+
+.fade-out{
+    opacity: 0;
+}
+
+
+.images{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap:6rem
+    
+}
+
+.images img{
+     height: 500px !important;
+     width: auto !important;
+     object-fit: cover;
+    
+}
+
+
+.line, .char{
+    position: relative;
+    will-change: transform;
+}
+
+
+
+::view-transition-group(navbar){
+    animation: none;
+    z-index: 100;
+}
+
+
+::view-transition-old(.page-exit){
+    animation:1500ms cubic-bezier(0.83, 0, 0.17, 1) both page-out ;
+}
+
+::view-transition-new(.page-enter){
+    animation:1500ms cubic-bezier(0.83, 0, 0.17, 1) both page-in ;
+    animation-delay: 0.2s;
+}
+
+@keyframes page-out {
+ 0%{
+    clip-path: polygon(0% 0% ,100% 0%, 100% 100%,0% 100%);
+ }   
+ 100%{
+    clip-path: polygon(0% 0% ,100% 0%, 100% 0%,0% 0%);
+ }   
+}
+
+@keyframes page-in {
+ from{
+    transform:  translateY(20%) ;
+    clip-path: polygon(0% 100% ,100% 100%, 100% 100%,0% 100%);
+ }   
+   
+ to{
+    transform:  translateX(0%) translateY(0%);
+    clip-path: polygon(0% 0% ,100% 0%, 100% 100%,0% 100%);
+ }  
+}
+
