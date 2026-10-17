@@ -1,25 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    // GLSL Loader
-    config.module.rules.push({
-      test: /\.glsl$/,
-      use: [
-        'raw-loader',
-        'glslify-loader'
-      ],
-      include: `${process.cwd()}/src`
-    });
+  experimental:{
+    viewTransition:true,
+  },
+  turbopack: {
+    rules: {
+      '*.glsl': {
+        loaders: ['raw-loader', 'glslify-loader'],
+        as: '*.js',
+      },
 
-    // HTML Loader
-    config.module.rules.push({
-      test: /\.html$/,
-      use: 'html-loader',
-      include: `${process.cwd()}/src` // Adjust this path as necessary
-    });
-
-    return config;
-  }
+      '*.html': {
+        loaders: ['html-loader'],
+        as: '*.js',
+      },
+    },
+  },
 };
 
 export default nextConfig;
