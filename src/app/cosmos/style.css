@@ -1,0 +1,100 @@
+
+*{
+    --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+    --custom-easing: cubic-bezier(0.42, 0, 0.58, 1);
+    --spacing: 0.25rem;
+}
+
+.text-tertiary{
+    color: #9a9796;
+}
+
+.text-secondary{
+    color: #7e7c7b;
+}
+
+.bg-elevation-light{
+    background: #fcfbfa;
+}
+
+.text-body-regular{
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: -0.02em;
+}
+
+.bg-hover-secondary{
+    background:#e8e6e4;
+}
+
+.size-8\.5{
+    width: calc(var(--spacing) * 8.5);
+    height: calc(var(--spacing) * 8.5);
+}
+
+
+
+.inset-shadow-glass {
+     --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+    box-shadow:
+     inset 0 1px 1.5px #ffffffb3, /* white top highlight */
+     inset 0 -1px 1.5px #00000008, /* subtle bottom shadow */
+     var(--tw-ring-offset-shadow, 0 0 #0000),
+     var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)
+    ;
+}
+
+.fade-wrapper{
+    transition: opacity var(--fade-duration) var(--custom-easing);
+}
+
+.search-placeholder {
+    white-space: nowrap;
+
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    
+    --shimmer-highlight:rgb(31, 30, 30);
+    --shimmer-base:gray;
+
+    background-image:
+        linear-gradient(
+            90deg,
+            transparent calc(50% - var(--spread)),
+            var(--shimmer-highlight),
+            transparent calc(50% + var(--spread))
+        ),
+        linear-gradient(
+            var(--shimmer-base),
+            var(--shimmer-base)
+        );
+
+
+    background-size: 250% 100%;
+    background-position: 100% 0;
+
+    background-repeat: no-repeat;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    animation:
+        search-placeholder-shimmer
+        var(--shimmer-duration)
+        linear
+        infinite;
+
+    display: inline-block;
+
+    
+}
+
+@keyframes search-placeholder-shimmer {
+    to {
+        background-position: 0% 0;
+    }
+}
+
+
+
