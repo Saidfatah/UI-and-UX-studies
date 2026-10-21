@@ -1,0 +1,51 @@
+:root{
+    --spacing-section: 87.5rem;
+    --spacing-page-gutter: 4rem;
+    --frame-start-height: .62;
+    --container-page: 87.5rem;
+}
+
+.introduction{
+    --intro-final-hold: 1;
+    --intro-travel: calc(var(--intro-morph-travel) + var(--intro-final-hold));
+
+    height: calc(100dvh + var(--intro-travel) * 100svh);
+}
+
+.intro-stage{
+    background-color: red;
+    
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+}
+
+
+.intro-frame{
+    background-color: black;
+    min-height: 0;
+
+        display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+
+    --frame-start-width: min(var(--container-page), 100% - 2 * var(--spacing-page-gutter));
+    width: calc(var(--frame-start-width) + (100% - var(--frame-start-width)) * var(--expansion));
+    height: calc((var(--frame-start-height) + (1 - var(--frame-start-height)) * var(--expansion)) * 100%);
+}
+
+.intro-layout{
+    height: 100%;
+
+    background: blue;
+    /* here visually it looks like the padding is getting animated, but its the width taht used since its better for perofmance  */
+    width: calc(100% - 2 * var(--spacing-page-gutter) - (1 - var(--expansion)) * 4rem);
+    max-width: calc(64.875rem + (var(--container-page) - 64.875rem) * var(--expansion));
+}
+
