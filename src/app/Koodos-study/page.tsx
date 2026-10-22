@@ -4,23 +4,26 @@ import { useEffect, useRef } from "react";
 import "./style.css";
 import { clampProgress } from "./utils";
 
-const initialPhase = 0.576;
-const morphPhase = 1.4;
+
+
+// initialPhase determines how quickly expansion completes relative to the overall animation timeline.
+const initialPhase = 1;
+
+const morphPhase = 2.2;
 const scrollOffset = 0.2;
 const finalHold = 1;
 
 // will be used to set the section height for the scroll 
-const introductionMorphTravel = initialPhase + morphPhase * 2;
+const introductionMorphTravel = initialPhase + morphPhase * 2; //3.376
+const totalDuration = introductionMorphTravel + finalHold; // 4.376
 
-const totalDuration = introductionMorphTravel + finalHold;
 
 
-function getExpansion(progress: number) {
-    const adjustedProgress =
-        progress * (totalDuration + scrollOffset) - scrollOffset;
+// using simple distances calcs (clean and easy so its better)
+const expansionPercentageInTimeline =
+    (initialPhase + scrollOffset) /
+    (totalDuration + scrollOffset);
 
-    return clampProgress(adjustedProgress / initialPhase);
-}
 
 function getMorphProgress(progress: number) {
     const adjustedProgress =
@@ -50,6 +53,14 @@ function Koodos() {
 
         if (!introduction) return;
 
+        const section = introRef.current;
+        const stage = (section as HTMLElement).querySelector(".intro-stage");
+
+        if (!section || !stage) return;
+
+        const scrollRange = section.offsetHeight - stage.clientHeight
+        const expansionRange = scrollRange * expansionPercentageInTimeline;
+
         let animationFrame = 0;
         let previousExpansion = -1;
         let previousMorphProgress = -1;
@@ -62,22 +73,17 @@ function Koodos() {
             const stage = (section as HTMLElement).querySelector(".intro-stage");
             if (!section || !stage) return;
 
-
-            const scrollRange = section.offsetHeight - stage.clientHeight
-
+            const scrollStartingFromSection = window.scrollY - section.offsetTop;
 
             let progress = 0;
-
             if (scrollRange > 0) {
-                const scrollStartingFromSection = window.scrollY - section.offsetTop;
-                progress = scrollStartingFromSection / scrollRange ;
+                progress = scrollStartingFromSection / scrollRange;
             }
-
             progress = clampProgress(progress);
 
 
             // Phase 1: Expand the frame.
-            const expansion = getExpansion(progress);
+            const expansion = clampProgress(scrollStartingFromSection / expansionRange)
 
             if (expansion !== previousExpansion) {
                 previousExpansion = expansion;
