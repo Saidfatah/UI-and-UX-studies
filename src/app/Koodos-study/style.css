@@ -3,9 +3,14 @@
     --spacing-page-gutter: 4rem;
     --frame-start-height: .62;
     --container-page: 87.5rem;
+
+    
 }
 
 .introduction{
+    --expansion: 0;
+    --morph-progress: 0;
+    --active-card: 0;
     --intro-final-hold: 1;
     --intro-travel: calc(var(--intro-morph-travel) + var(--intro-final-hold));
 
@@ -30,7 +35,7 @@
     background-color: black;
     min-height: 0;
 
-        display: grid;
+    display: grid;
     grid-template-rows: minmax(0, 1fr);
     grid-template-columns: minmax(0, 1fr);
     place-items: center;
@@ -43,9 +48,48 @@
 .intro-layout{
     height: 100%;
 
-    background: blue;
+    /* background: blue; */
     /* here visually it looks like the padding is getting animated, but its the width taht used since its better for perofmance  */
     width: calc(100% - 2 * var(--spacing-page-gutter) - (1 - var(--expansion)) * 4rem);
     max-width: calc(64.875rem + (var(--container-page) - 64.875rem) * var(--expansion));
+
+
+    display: grid;
+    place-items: center;
+    
+    
+    grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+    column-gap:  6rem
 }
 
+
+
+.intro-cards {
+  display: grid;
+}
+
+.intro-card {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms linear;
+ 
+}
+
+.card-inner{
+  color:white;
+  flex-direction: column ;
+  display: flex;
+  gap:8px;
+}
+
+.intro-card.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.intro-visual svg {
+  width: 100%;
+  height: auto;
+  color: white;
+}
