@@ -1,0 +1,17 @@
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    font-size: round(1rem, 1px);
+    line-height: round(1.25rem, 1px);
+}
+
+.name {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    line-height: 1em;
+}
+
+
+.cardPath{
+    clip-path: inset(20px 20px 70px 170px);
+}
